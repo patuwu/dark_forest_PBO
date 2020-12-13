@@ -191,7 +191,7 @@ public class Mapping implements Runnable {
             }
             
             if(RoomCheck.getInt("right_Room") == 0){
-                int[] change = {23,31,39,55};
+                int[] change = {23,31,39,47};
                 updateGrid = conn.prepareStatement("UPDATE Grid SET is_Passable = false WHERE grid = (?)");               
                 for(int i = 0; i < change.length; i++){
                 updateGrid.setInt(1, change[i]);

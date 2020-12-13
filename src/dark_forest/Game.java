@@ -2,6 +2,7 @@ package dark_forest;
 import javax.swing.*;
 import java.util.Random;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
@@ -19,8 +20,6 @@ public class Game extends javax.swing.JFrame {
     public Connection conn;
     public PreparedStatement prep;
     public CardLayout panelSwitch;
-    public ArrayList<Integer> edge = new ArrayList<>(Arrays.asList(2, 3, 4, 5, 8, 15, 16, 23, 24, 31, 58, 59 , 60, 61));
-    public ArrayList<Integer> bounds;
             
     public Game(Connection conn) {
         this.conn = conn;
@@ -852,23 +851,29 @@ public class Game extends javax.swing.JFrame {
     }
     
     public class traverse extends AbstractAction{
-        int move;
-        int direction;
-        int target_id;
-        int grid;
+        int move, direction, target_id, grid, skip;
+        Boolean edge;
+        String room;
+        HashSet<Integer> bounds;
         ResultSet target_check;
         PreparedStatement prepCheck;
         
         public traverse(int move,int direction){
         this.direction = direction;
         this.move = move;
-        
+        switch(direction){
+            case 1 : bounds = new HashSet<>(Arrays.asList(2, 3, 4, 5)); room = "up_Room"; skip = 56; break;
+            case 2 : bounds = new HashSet<>(Arrays.asList(58, 59, 60, 61)); room = "bot_Room"; skip = -56; break;
+            case 3 : bounds = new HashSet<>(Arrays.asList(16, 24, 32, 40)); room = "left_Room"; skip = 7; break;
+            case 4 : bounds = new HashSet<>(Arrays.asList(23, 31, 39, 43)); room = "right_Room"; skip = -7; break;
+        }
         }
         
         @Override
         public void actionPerformed(ActionEvent e) {
         try{        
-        grid = player.getGrid();  
+        grid = player.getGrid();
+        edge = bounds.contains(grid);
         System.out.println("movement direction - " + direction + " from " + grid);
         
         prepCheck = conn.prepareStatement("SELECT * FROM Entity WHERE grid = (?) AND room = (?)");
@@ -887,77 +892,22 @@ public class Game extends javax.swing.JFrame {
                 new combat_start().execute();
             }
         }                
+                
+        if(edge == true){
+        System.out.println("test - " + grid);
+        mover(grid, skip, 1);
+        prepCheck = conn.prepareStatement("SELECT * FROM Rooms WHERE room_ID = (?)");
+        prepCheck.setInt(1, player.getRoom());
+        ResultSet next = prepCheck.executeQuery();
         
-        if(edge.contains(grid)){  
-        System.out.println("test");
-        switch(direction){
-                case 1 :
-                    bounds = new ArrayList<>(Arrays.asList(2, 3, 4, 5));
-                    if(bounds.contains(grid)){
-                        prepCheck = conn.prepareStatement("SELECT up_Room FROM Rooms WHERE room_ID = (?)");
-                        prepCheck.setInt(1, player.getRoom());
-                        ResultSet next = prepCheck.executeQuery();
-                        player.setRoom(next.getInt("up_Room"));
-                        mover(grid, 56);
-                        switchPanel("panelL");
-                        new updateMap().execute();
-                    }
-                    else{
-                    mover(grid, move);
-                    }
-                    break;
-                case 2 :
-                    bounds = new ArrayList<>(Arrays.asList(58, 59, 60, 61));
-                    if(bounds.contains(grid)){
-                        prepCheck = conn.prepareStatement("SELECT bot_Room FROM Rooms WHERE room_ID = (?)");
-                        prepCheck.setInt(1, player.getRoom());
-                        ResultSet next = prepCheck.executeQuery();
-                        player.setRoom(next.getInt("bot_Room"));
-                        mover(grid, -56);
-                        switchPanel("panelL");
-                        new updateMap().execute();
-                    }
-                    else{
-                    mover(grid, move);
-                    }
-                    break;
-                case 3 :
-                    bounds = new ArrayList<>(Arrays.asList(16, 24, 32, 40));
-                    if(bounds.contains(grid)){
-                        prepCheck = conn.prepareStatement("SELECT left_Room FROM Rooms WHERE room_ID = (?)");
-                        prepCheck.setInt(1, player.getRoom());
-                        ResultSet next = prepCheck.executeQuery();
-                        player.setRoom(next.getInt("left_Room"));
-                        mover(grid, 7);                        
-                        switchPanel("panelL");
-                        new updateMap().execute();
-                    }
-                    else{
-                    mover(grid, move);
-                    }
-                    break;
-                case 4 :
-                    bounds = new ArrayList<>(Arrays.asList(23, 31, 39, 43));
-                    if(bounds.contains(grid)){
-                        prepCheck = conn.prepareStatement("SELECT right_Room FROM Rooms WHERE room_ID = (?)");
-                        prepCheck.setInt(1, player.getRoom());
-                        ResultSet next = prepCheck.executeQuery();
-                        player.setRoom(next.getInt("right_Room"));
-                        mover(grid, -7);
-                        switchPanel("panelL");
-                        new updateMap().execute();
-                    }
-                    else{
-                    mover(grid, move);
-                    }
-                    break;
-            }
-        
+        switchPanel("panelL");
+        player.setRoom(next.getInt(room));
+        new updateMap().execute();                     
         }
+        
         else{
-        mover(grid, move);
-        }              
-        Player_dot.repaint();
+        mover(grid, move, 0);
+        }
         
         System.out.println("movement finish");
         }catch(SQLException ex){
@@ -984,16 +934,16 @@ public class Game extends javax.swing.JFrame {
         }
     }
     
-    private void mover(int grid, int move){       
+    private void mover(int grid, int move, int skip){       
         try{        
-        prep = conn.prepareStatement("SELECT * FROM Grid WHERE grid = (?)");
-        prep.setInt(1, grid+move);
-        ResultSet next = prep.executeQuery();
+        PreparedStatement prepMove = conn.prepareStatement("SELECT is_Passable FROM Grid WHERE grid = (?)");
+        prepMove.setInt(1, grid+move);
+        ResultSet next = prepMove.executeQuery();
                             
-        if(next.getBoolean("is_Passable") == true){                                   
+        if(next.getBoolean("is_Passable") == true || skip == 1){                                   
             player.setGrid(grid+move);
             System.out.println("movement success to " + (move+grid));
-            
+            Player_dot.paintImmediately(0,0, 640, 480);
         }
         }catch(SQLException ex){
             System.out.println("movement failed");
@@ -1007,7 +957,7 @@ public class Game extends javax.swing.JFrame {
         int cond = 0;
             
         while(target.getHP() > 0 && player.getHP() > 0){
-         
+            if(target.getHP() <= 0 || player.getHP() <= 0){break;}
         }
 
         if(target.getHP() <= 0){
@@ -1025,21 +975,20 @@ public class Game extends javax.swing.JFrame {
         protected void done(){
             try {
                 System.out.println(get());
-                if(get() == 1){
-                    try{
-                    PreparedStatement Deletion = conn.prepareStatement("DELETE FROM Entity WHERE Ent_ID = (?)");
-                    Deletion.setInt(1, target.getID());
-                    Deletion.executeUpdate();
-                    }catch(SQLException ex){
-                        ex.printStackTrace();
-                    }                                        
-                    
+                if(get() == 1){                                                                               
                     int calcR = target.GiveReward();
                     int rngR = rnd.nextInt(10);
                     
                     player.addEXP(calcR);
                     player.addCash(calcR+(50*rngR));
                     rewardList(calcR+(50*rngR));
+                    try{
+                    PreparedStatement Deletion = conn.prepareStatement("DELETE FROM Entity WHERE Ent_ID = (?)");
+                    Deletion.setInt(1, target.getID());
+                    Deletion.executeUpdate();
+                    }catch(SQLException ex){
+                        ex.printStackTrace();
+                    }                       
                     People.repaint();                   
                     System.out.println("combat finished");
                 }
