@@ -1,9 +1,11 @@
 package dark_forest;
 import javax.swing.*;
 import java.util.Random;
+import java.util.ArrayList;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+import java.util.Arrays;
 
 
 public class Game extends javax.swing.JFrame {
@@ -17,6 +19,8 @@ public class Game extends javax.swing.JFrame {
     public Connection conn;
     public PreparedStatement prep;
     public CardLayout panelSwitch;
+    public ArrayList<Integer> edge = new ArrayList<>(Arrays.asList(2, 3, 4, 5, 8, 15, 16, 23, 24, 31, 58, 59 , 60, 61));
+    public ArrayList<Integer> bounds;
             
     public Game(Connection conn) {
         this.conn = conn;
@@ -76,7 +80,7 @@ public class Game extends javax.swing.JFrame {
         e_HPBar = new javax.swing.JProgressBar();
         E_Name = new javax.swing.JLabel();
         Adventure = new javax.swing.JPanel();
-        Player_post = new player_dot();
+        Player_dot = new player_dot();
         People = new peoples();
         Map = new map();
         Loading = new javax.swing.JPanel();
@@ -420,7 +424,7 @@ public class Game extends javax.swing.JFrame {
         Combat.add(e_HPBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 60, 130, 10));
 
         E_Name.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        E_Name.setText(target.getName());
+        E_Name.setText(target.info());
         Combat.add(E_Name, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 70, 130, -1));
 
         Main_Window.add(Combat, "panelC");
@@ -432,26 +436,26 @@ public class Game extends javax.swing.JFrame {
         Adventure.getInputMap(IFW).put(KeyStroke.getKeyStroke("LEFT"), "go left");
         Adventure.getInputMap(IFW).put(KeyStroke.getKeyStroke("RIGHT"), "go right");
 
-        Adventure.getActionMap().put("go up", new traverse(0,-8,1));
-        Adventure.getActionMap().put("go down", new traverse(0,8,2));
-        Adventure.getActionMap().put("go left", new traverse(-1,0,3));
-        Adventure.getActionMap().put("go right", new traverse(1,0,4));
+        Adventure.getActionMap().put("go up", new traverse(-8,1));
+        Adventure.getActionMap().put("go down", new traverse(8,2));
+        Adventure.getActionMap().put("go left", new traverse(-1,3));
+        Adventure.getActionMap().put("go right", new traverse(1,4));
         Adventure.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        Player_post.setOpaque(false);
+        Player_dot.setOpaque(false);
 
-        javax.swing.GroupLayout Player_postLayout = new javax.swing.GroupLayout(Player_post);
-        Player_post.setLayout(Player_postLayout);
-        Player_postLayout.setHorizontalGroup(
-            Player_postLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout Player_dotLayout = new javax.swing.GroupLayout(Player_dot);
+        Player_dot.setLayout(Player_dotLayout);
+        Player_dotLayout.setHorizontalGroup(
+            Player_dotLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 640, Short.MAX_VALUE)
         );
-        Player_postLayout.setVerticalGroup(
-            Player_postLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        Player_dotLayout.setVerticalGroup(
+            Player_dotLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 400, Short.MAX_VALUE)
         );
 
-        Adventure.add(Player_post, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 20, -1, -1));
+        Adventure.add(Player_dot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 20, -1, -1));
 
         People.setOpaque(false);
 
@@ -589,6 +593,7 @@ public class Game extends javax.swing.JFrame {
             
             }catch (SQLException ex)
                     {System.out.println("error");}
+            
         }
     }
     
@@ -600,11 +605,11 @@ public class Game extends javax.swing.JFrame {
             super.paintComponent(g);
             room = player.getRoom();
             try{
-            PreparedStatement prepcheck = conn.prepareStatement("SELECT * FROM Entity WHERE room = (?) AND Ent_ID > 1");
+            PreparedStatement prepcheck = conn.prepareStatement("SELECT * FROM Entity WHERE room = (?) AND Ent_ID != 1");
             prepcheck.setInt(1, room);
             ResultSet check = prepcheck.executeQuery();
             
-            while(check.next()){           
+            while(check.next()){  
             g.setColor(Color.RED);
 
             i = 0;
@@ -617,10 +622,10 @@ public class Game extends javax.swing.JFrame {
                 
             g.fillOval(20+80*j, 5+50*i, 40, 40);
             }
-                        
+
             }catch (SQLException ex)
-            {System.out.println("error");}         
-        repaint();
+            {System.out.println("error");}   
+            
         }
     }
     
@@ -631,7 +636,9 @@ public class Game extends javax.swing.JFrame {
         public void paintComponent(Graphics g){
             super.paintComponent(g);
             room = player.getRoom();
+                         
             g.setColor(Color.BLACK);
+
             i = 0;
             j = player.getGrid() - (i*8);
             
@@ -640,8 +647,8 @@ public class Game extends javax.swing.JFrame {
                 j = player.getGrid() - (i*8);
             }
                 
-            g.fillOval(20+80*j, 5+50*i, 40, 40);                                
-        repaint();
+            g.fillOval(20+80*j, 5+50*i, 40, 40);
+
         }
     }
     
@@ -698,12 +705,14 @@ public class Game extends javax.swing.JFrame {
             progress.setText("Awaking the Player");
             player = new Player(1, 1, conn);
             progress.setText("Terrorizing the Forest");
-            for(int i = 2; i <= 3; i++){
+            for(int i = 2; i <= 3/*(7+rnd.nextInt(3))*/; i++){
             target = new Enemy(player.getLvl(), i, conn);}
             System.out.println("entity making complete");
             progress.setText("Rebuilding the Forest");
             mapping = new Mapping(conn);
             mapping.GenerateRoom();
+            progress.setText("Scattering the Terror");
+            mapping.EnemyPlacing();
             System.out.println("mapping complete");
             return 1;
         }
@@ -843,31 +852,29 @@ public class Game extends javax.swing.JFrame {
     }
     
     public class traverse extends AbstractAction{
-        int move_hz;
-        int move_vr;
+        int move;
         int direction;
         int target_id;
-        ResultSet position;
-        PreparedStatement prepAct;
+        int grid;
+        ResultSet target_check;
+        PreparedStatement prepCheck;
         
-        public traverse(int move_hz,int move_vr,int direction){
+        public traverse(int move,int direction){
         this.direction = direction;
-        this.move_hz = move_hz;
-        this.move_vr = move_vr;
+        this.move = move;
         
         }
         
         @Override
         public void actionPerformed(ActionEvent e) {
-        try{
-        System.out.println("movement direction - " + direction);
-        int grid = player.getGrid();  
+        try{        
+        grid = player.getGrid();  
+        System.out.println("movement direction - " + direction + " from " + grid);
         
-        PreparedStatement prepCheck = conn.prepareStatement("SELECT * FROM Entity WHERE grid = (?)");
-        prepCheck.setInt(1, grid+(move_hz+move_vr));
-        ResultSet target_check = prepCheck.executeQuery();
-        
-        
+        prepCheck = conn.prepareStatement("SELECT * FROM Entity WHERE grid = (?) AND room = (?)");
+        prepCheck.setInt(1, grid+move);
+        prepCheck.setInt(2, player.getRoom());
+        target_check = prepCheck.executeQuery();        
         
         if(target_check.next() == true){
                 if(target_check.getInt("Ent_ID") != 1){
@@ -881,54 +888,78 @@ public class Game extends javax.swing.JFrame {
             }
         }                
         
+        if(edge.contains(grid)){  
+        System.out.println("test");
+        switch(direction){
+                case 1 :
+                    bounds = new ArrayList<>(Arrays.asList(2, 3, 4, 5));
+                    if(bounds.contains(grid)){
+                        prepCheck = conn.prepareStatement("SELECT up_Room FROM Rooms WHERE room_ID = (?)");
+                        prepCheck.setInt(1, player.getRoom());
+                        ResultSet next = prepCheck.executeQuery();
+                        player.setRoom(next.getInt("up_Room"));
+                        mover(grid, 56);
+                        switchPanel("panelL");
+                        new updateMap().execute();
+                    }
+                    else{
+                    mover(grid, move);
+                    }
+                    break;
+                case 2 :
+                    bounds = new ArrayList<>(Arrays.asList(58, 59, 60, 61));
+                    if(bounds.contains(grid)){
+                        prepCheck = conn.prepareStatement("SELECT bot_Room FROM Rooms WHERE room_ID = (?)");
+                        prepCheck.setInt(1, player.getRoom());
+                        ResultSet next = prepCheck.executeQuery();
+                        player.setRoom(next.getInt("bot_Room"));
+                        mover(grid, -56);
+                        switchPanel("panelL");
+                        new updateMap().execute();
+                    }
+                    else{
+                    mover(grid, move);
+                    }
+                    break;
+                case 3 :
+                    bounds = new ArrayList<>(Arrays.asList(16, 24, 32, 40));
+                    if(bounds.contains(grid)){
+                        prepCheck = conn.prepareStatement("SELECT left_Room FROM Rooms WHERE room_ID = (?)");
+                        prepCheck.setInt(1, player.getRoom());
+                        ResultSet next = prepCheck.executeQuery();
+                        player.setRoom(next.getInt("left_Room"));
+                        mover(grid, 7);                        
+                        switchPanel("panelL");
+                        new updateMap().execute();
+                    }
+                    else{
+                    mover(grid, move);
+                    }
+                    break;
+                case 4 :
+                    bounds = new ArrayList<>(Arrays.asList(23, 31, 39, 43));
+                    if(bounds.contains(grid)){
+                        prepCheck = conn.prepareStatement("SELECT right_Room FROM Rooms WHERE room_ID = (?)");
+                        prepCheck.setInt(1, player.getRoom());
+                        ResultSet next = prepCheck.executeQuery();
+                        player.setRoom(next.getInt("right_Room"));
+                        mover(grid, -7);
+                        switchPanel("panelL");
+                        new updateMap().execute();
+                    }
+                    else{
+                    mover(grid, move);
+                    }
+                    break;
+            }
         
+        }
+        else{
+        mover(grid, move);
+        }              
+        Player_dot.repaint();
         
-//        switch(direction){
-//                case 1 :
-//                    if(grid >= 2 && grid <= 5){
-//                        prepCheck = conn.prepareStatement("SELECT up_Room FROM Rooms WHERE room_ID = (?)");
-//                        prepCheck.setInt(1, player.getRoom());
-//                        ResultSet next = prepCheck.executeQuery();
-//                        player.setRoom(next.getInt("up_Room"));
-//                        move_hz = 56;
-//                        move_vr = 0;
-//                    }
-//                    break;
-//                case 2 :
-//                    if(grid >= 58 && grid <= 61){
-//                        prepCheck = conn.prepareStatement("SELECT down_Room FROM Rooms WHERE room_ID = (?)");
-//                        prepCheck.setInt(1, player.getRoom());
-//                        ResultSet next = prepCheck.executeQuery();
-//                        player.setRoom(next.getInt("down_Room"));
-//                        move_hz = -56;
-//                        move_vr = 0;
-//                    }
-//                    break;
-//                case 3 :
-//                    if(grid == 16 || grid == 24 || grid == 32 || grid == 40){
-//                        prepCheck = conn.prepareStatement("SELECT left_Room FROM Rooms WHERE room_ID = (?)");
-//                        prepCheck.setInt(1, player.getRoom());
-//                        ResultSet next = prepCheck.executeQuery();
-//                        player.setRoom(next.getInt("left_Room"));
-//                        move_hz = 0;
-//                        move_vr = 7;
-//                    }
-//                    break;
-//                case 4 :
-//                    if(grid == 23 || grid == 31 || grid == 39 || grid == 43){
-//                        prepCheck = conn.prepareStatement("SELECT right_Room FROM Rooms WHERE room_ID = (?)");
-//                        prepCheck.setInt(1, player.getRoom());
-//                        ResultSet next = prepCheck.executeQuery();
-//                        player.setRoom(next.getInt("right_Room"));
-//                        move_hz = 0;
-//                        move_vr = -7;
-//                    }
-//                    break;
-//            }
-        move(grid, move_hz, move_vr);
-        Player_post.repaint();
-        
-        System.out.println("movement end");
+        System.out.println("movement finish");
         }catch(SQLException ex){
             System.out.println("movement error");
             ex.printStackTrace();
@@ -937,14 +968,32 @@ public class Game extends javax.swing.JFrame {
         
     }
     
-    private void move(int grid, int move_hz, int move_vr){       
+    private class updateMap extends SwingWorker<Integer,Integer>{
+        @Override
+        protected Integer doInBackground() throws Exception {
+            progress.setText("Looking...");
+            Map.repaint();
+            People.repaint();
+            return 0;
+        }
+        
+        
+        @Override
+        protected void done(){
+            switchPanel("panelA");
+        }
+    }
+    
+    private void mover(int grid, int move){       
         try{        
         prep = conn.prepareStatement("SELECT * FROM Grid WHERE grid = (?)");
-        prep.setInt(1, grid+(move_hz+move_vr));
+        prep.setInt(1, grid+move);
         ResultSet next = prep.executeQuery();
                             
         if(next.getBoolean("is_Passable") == true){                                   
-            player.setGrid(grid+(move_hz+move_vr));
+            player.setGrid(grid+move);
+            System.out.println("movement success to " + (move+grid));
+            
         }
         }catch(SQLException ex){
             System.out.println("movement failed");
@@ -1037,7 +1086,7 @@ public class Game extends javax.swing.JFrame {
     private javax.swing.JPanel Map;
     private javax.swing.JButton Normal_A;
     private javax.swing.JPanel People;
-    private javax.swing.JPanel Player_post;
+    private javax.swing.JPanel Player_dot;
     private javax.swing.JButton Reset;
     private javax.swing.JPanel Reward;
     private javax.swing.JPanel Spell;

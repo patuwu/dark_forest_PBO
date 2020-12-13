@@ -2,8 +2,7 @@ package dark_forest;
 import java.sql.*;
 import java.util.Random;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Arrays;
 
 public class Mapping implements Runnable {
     final Random rnd = new Random();
@@ -25,40 +24,36 @@ public class Mapping implements Runnable {
             ArrayList<Integer> ban = new ArrayList<Integer>();
             ArrayList<Integer> done = new ArrayList<Integer>();
             int j;
+            boolean deleted;
             for(int i = 1; i <= 9; i++){
+                
                 System.out.println(i);
-                if(done.contains(i) == false){
-                done.add(i);
                 PreparedStatement prepC = conn.prepareStatement("SELECT * FROM Rooms WHERE room_ID = (?)");
                 prepC.setInt(1, i);
                 ResultSet check = prepC.executeQuery();
                 
                 j = 1 + rnd.nextInt(8);                
-                if(check.getInt("right_Room") == 0 && ban.contains(j) == false){
+                if(check.getInt("right_Room") == 0 && ban.contains(j) == false && i != j){
                     updateLink(i,j,"left_Room" ,"right_Room");
                     ban.add(j);
-                    done.add(j);
-                    j = 1 + rnd.nextInt(8);                   
+                    j = 1 + rnd.nextInt(8);                        
                 }
                 
-                if(rnd.nextInt(2) != 0 && check.getInt("up_Room") == 0 && ban.contains(j) == false){
+                if(check.getInt("up_Room") == 0 && ban.contains(j) == false && i != j){
                     updateLink(i,j,"bot_Room" ,"up_Room");
                     ban.add(j);
-                    done.add(j);
-                    j = 1 + rnd.nextInt(8);                    
+                    j = 1 + rnd.nextInt(8);                                              
                 }
                 
-                if(rnd.nextInt(2) != 0 && check.getInt("left_Room") == 0 && ban.contains(j) == false){
+                if(check.getInt("left_Room") == 0 && ban.contains(j) == false && i != j){
                     updateLink(i,j,"right_Room" ,"left_Room");
                     ban.add(j);
-                    done.add(j);
-                    j = 1 + rnd.nextInt(8);                  
+                    j = 1 + rnd.nextInt(8);                       
                 }
                 
-                if(rnd.nextInt(2) != 0 && check.getInt("bot_Room") == 0 && ban.contains(j) == false){
+                if(check.getInt("bot_Room") == 0 && ban.contains(j) == false && i != j){
                     updateLink(i,j,"up_Room" ,"bot_Room");
                     ban.add(j);
-                    done.add(j);
                     j = 1 + rnd.nextInt(8);
                 }
                 
@@ -77,9 +72,7 @@ public class Mapping implements Runnable {
                     }
                 }
                 
-                
-                }}
-            
+            }
         }catch(Exception e){
             System.out.println("thread error");
             e.printStackTrace();
@@ -149,14 +142,13 @@ public class Mapping implements Runnable {
                     {prep.setBoolean(2, true);}
                     
                     
-                    if(( i == 0 && (j > 2 && j < 5)) || ((i > 2 && i < 5) && j == 0) || ( i == 7 && (j > 2 && j < 5)) || ( (i > 2 && i < 5) && j == 7))
+                    if(( i == 0 && (j >= 2 && j <= 5)) || ((i >= 2 && i <= 5) && j == 0) || ( i == 7 && (j >= 2 && j <= 5)) || ( (i >= 2 && i <= 5) && j == 7))
                     {prep.setBoolean(3, true);}
                     else
                     {prep.setBoolean(3, false);}
                     
                     
                     prep.addBatch();
-                    System.out.println(i + " " + j);
                     }
                 }
             start = System.currentTimeMillis();
@@ -164,11 +156,10 @@ public class Mapping implements Runnable {
             end = System.currentTimeMillis();
             prep.close();
             
-            System.out.println("total time taken to insert the batch = " + (end - start) + " ms");                
+            System.out.println("generate map = " + (end - start) + " ms");                
 
             System.out.println("generate finish");
             
-            EnemyPlacing();
             try {
                 t.join();
             } catch (InterruptedException ex) {              
@@ -200,7 +191,7 @@ public class Mapping implements Runnable {
             }
             
             if(RoomCheck.getInt("right_Room") == 0){
-                int[] change = {23,31,39,43};
+                int[] change = {23,31,39,55};
                 updateGrid = conn.prepareStatement("UPDATE Grid SET is_Passable = false WHERE grid = (?)");               
                 for(int i = 0; i < change.length; i++){
                 updateGrid.setInt(1, change[i]);
@@ -242,8 +233,9 @@ public class Mapping implements Runnable {
             
             while(lookResult.next()){
                 int[] gridAllowed = {18,20,21,26,27,28,29,34,35,36,37,42,43,44,45};
+                int[] roomAllowed = {1,2,3,4,6,8};
                 int a = gridAllowed[rnd.nextInt(15)];
-                int b = 1 /*+ rnd.nextInt(7)*/;
+                int b = roomAllowed[rnd.nextInt(6)];
                            
                 PreparedStatement prepcheck = conn.prepareStatement("SELECT * FROM Entity");
                 ResultSet check = prepcheck.executeQuery();
@@ -251,7 +243,7 @@ public class Mapping implements Runnable {
                 while(check.next()){
                     if((check.getInt("grid") == a && check.getInt("room") == b)){
                         a = gridAllowed[rnd.nextInt(15)];
-                        b = 1 + rnd.nextInt(7);
+                        b = roomAllowed[rnd.nextInt(6)];
                         check = get.executeQuery();
                     }                           
                 }

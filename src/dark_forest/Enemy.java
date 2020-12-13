@@ -112,4 +112,8 @@ public class Enemy extends Entity{
             }
         }
         
+        @Override
+        public String info(){
+            return ("Level " + lvl + " - " + name);
+        }
 }

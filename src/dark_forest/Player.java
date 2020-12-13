@@ -124,5 +124,10 @@ public class Player extends Entity {
                 System.out.println("enemy making error");
                 ex.printStackTrace();
             }
-        }        
+        }
+
+        @Override
+        public String info(){
+            return (cash + " / " + exp);
+        }
 }

@@ -1,7 +1,7 @@
 package dark_forest;
 import java.sql.*;
 
-public class Entity {
+public abstract class Entity {
     public String name;
     public int lvl, str, intel, agi, hp, max_hp, mp, max_mp, grid, room, id;
     private Connection conn;
@@ -137,7 +137,7 @@ public class Entity {
         
     public void insertData(int ID){
         try{
-            prep = conn.prepareStatement("INSERT INTO Entity VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)");
+            prep = conn.prepareStatement("INSERT INTO Entity VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             prep.setInt(1, ID);
             prep.setString(2, name);
             prep.setInt(3, str);
@@ -148,6 +148,8 @@ public class Entity {
             prep.setInt(8, max_hp);
             prep.setInt(9, mp);
             prep.setInt(10, max_mp);
+            prep.setInt(11, grid);
+            prep.setInt(12, room);
             prep.executeUpdate();
             
            System.out.println("entity saving complete");
@@ -181,14 +183,7 @@ public class Entity {
             }
     }
     
-    public void info(){
-        System.out.println("NAME = " + name);
-        System.out.println("LEVEL = " + lvl);
-        System.out.println("STRENGTH = " + str);
-        System.out.println("INTELLIGENCE = " + intel);
-        System.out.println("AGILITY = " + agi);
-        System.out.println("HP = " + hp + " / " + max_hp);
-    }
+    abstract public String info();
 
     public void Damage(int amount){
         hp = hp - amount;

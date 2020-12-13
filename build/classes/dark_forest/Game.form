@@ -765,7 +765,7 @@
               <Properties>
                 <Property name="horizontalAlignment" type="int" value="0"/>
                 <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-                  <Connection code="target.getName()" type="code"/>
+                  <Connection code="target.info()" type="code"/>
                 </Property>
               </Properties>
               <Constraints>
@@ -786,7 +786,7 @@
             </Property>
           </Properties>
           <AuxValues>
-            <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="Adventure.getInputMap(IFW).put(KeyStroke.getKeyStroke(&quot;UP&quot;), &quot;go up&quot;);&#xa;Adventure.getInputMap(IFW).put(KeyStroke.getKeyStroke(&quot;DOWN&quot;), &quot;go down&quot;);&#xa;Adventure.getInputMap(IFW).put(KeyStroke.getKeyStroke(&quot;LEFT&quot;), &quot;go left&quot;);&#xa;Adventure.getInputMap(IFW).put(KeyStroke.getKeyStroke(&quot;RIGHT&quot;), &quot;go right&quot;);&#xa;&#xa;Adventure.getActionMap().put(&quot;go up&quot;, new traverse(0,-8,1));&#xa;Adventure.getActionMap().put(&quot;go down&quot;, new traverse(0,8,2));&#xa;Adventure.getActionMap().put(&quot;go left&quot;, new traverse(-1,0,3));&#xa;Adventure.getActionMap().put(&quot;go right&quot;, new traverse(1,0,4));"/>
+            <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="Adventure.getInputMap(IFW).put(KeyStroke.getKeyStroke(&quot;UP&quot;), &quot;go up&quot;);&#xa;Adventure.getInputMap(IFW).put(KeyStroke.getKeyStroke(&quot;DOWN&quot;), &quot;go down&quot;);&#xa;Adventure.getInputMap(IFW).put(KeyStroke.getKeyStroke(&quot;LEFT&quot;), &quot;go left&quot;);&#xa;Adventure.getInputMap(IFW).put(KeyStroke.getKeyStroke(&quot;RIGHT&quot;), &quot;go right&quot;);&#xa;&#xa;Adventure.getActionMap().put(&quot;go up&quot;, new traverse(-8,1));&#xa;Adventure.getActionMap().put(&quot;go down&quot;, new traverse(8,2));&#xa;Adventure.getActionMap().put(&quot;go left&quot;, new traverse(-1,3));&#xa;Adventure.getActionMap().put(&quot;go right&quot;, new traverse(1,4));"/>
           </AuxValues>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignCardLayout" value="org.netbeans.modules.form.compat2.layouts.DesignCardLayout$CardConstraintsDescription">
@@ -798,7 +798,7 @@
             <Property name="useNullLayout" type="boolean" value="false"/>
           </Layout>
           <SubComponents>
-            <Container class="javax.swing.JPanel" name="Player_post">
+            <Container class="javax.swing.JPanel" name="Player_dot">
               <Properties>
                 <Property name="opaque" type="boolean" value="false"/>
               </Properties>
