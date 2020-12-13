@@ -1,23 +1,42 @@
 package dark_forest;
 import java.util.Random;
+import java.sql.*;
 
 public class Player extends Entity {
-    	private Random rnd = new Random();
-	private int exp, exp_n, mp, max_mp;
-	//public Inventory inv;
-
-	public Player(String nm)
+    	final Random rnd = new Random();
+        public int[] inventory = new int[8];
+	private int exp, exp_n, cash;
+        private Connection conn;
+        private PreparedStatement prep;
+        
+	public Player(int lv, int ID, Connection conn)
 	{
-		name = nm;
-		exp = 0;
-		exp_n = 150;
-		str = str + ((lvl-1)+rnd.nextInt(2));
-		intel = intel + ((lvl-1)+rnd.nextInt(2));
-		agi = agi + ((lvl-1)+rnd.nextInt(2));
-		hp = max_hp = str*100;
-                hp = hp/2;
-		max_mp = mp = intel*20;
+            super(lv, ID, conn);
+            this.conn = conn;
+            exp = 0;
+            exp_n = 150; 
+            cash = 0;
+            room = 1;
+            grid = 17;
+            
+            this.insertData(ID);
 	}
+        
+        public Player(Connection conn){
+            super(1, conn);
+            try{
+                PreparedStatement prep_r = conn.prepareStatement("SELECT * FROM Player");
+                ResultSet retrieve = prep_r.executeQuery();
+                
+                exp = retrieve.getInt("exp");
+                exp_n = retrieve.getInt("exp_n");
+                cash = retrieve.getInt("cash");
+                
+                
+        }catch(SQLException ex){
+            System.out.println("entity retrieval error");
+        }
+        }
 
 	public int getEXP(){
 		return exp;
@@ -27,61 +46,12 @@ public class Player extends Entity {
 		return exp_n;
 	}
 
-	public int getMP(){
-		return mp;
-	}
-
-	public int getMax_MP(){
-		return max_mp;
-	}
-
 	public void setEXP(int exp){
 		this.exp = exp;
 	}
 
 	public void setEXP_N(int exp_n){
 		this.exp_n = exp_n;
-	}
-
-	public void setMP(int mp){
-		this.mp = mp;
-	}
-
-	public void setMax_MP(int max_mp){
-		this.max_mp = max_mp;
-	}
-
-        @Override
-	public void info(){
-		super.info();
-		System.out.println("MP = " + mp + " / " + max_mp);
-	}
-
-        @Override
-	public void simple_info(){
-		super.simple_info();
-
-		System.out.println("MP : " + mp + " / " + max_mp);
-		System.out.print("[");
-		for(int i = 0; i < max_mp ; i = i + (max_mp/10))
-		{
-			if (i >= mp) 
-			{System.out.print(" ");}
-			else
-			{System.out.print("|");}
-		}
-		System.out.print("]\n");
-
-		System.out.println("EXP : " + exp + " / " + exp_n);
-		System.out.print("[");
-		for(int i = 0; i < exp_n ; i = i + (exp_n/10))
-		{
-			if (i >= exp) 
-			{System.out.print(" ");}
-			else
-			{System.out.print("-");}
-		}
-		System.out.print("]\n");
 	}
 
 	public void addEXP(int amount){
@@ -113,13 +83,46 @@ public class Player extends Entity {
 			{addEXP(amount);}
 		}
 	}
-
-	public void reduceMP(int amount){
-		mp = mp - amount;
-	}
-
-	public void restoreMP(){
-		mp = mp + (intel*5);
-		if(mp >= max_mp) {mp = max_mp;}
-	}
+        
+        public void addCash(int amount){
+            cash = cash + amount;
+        }
+        
+        @Override
+        public void updateData(){
+            super.updateData();
+            
+            try{
+            PreparedStatement prepp = conn.prepareStatement("UPDATE Player SET exp = (?), exp_n = (?), cash = (?) WHERE Ent_ID = (?)");
+            prepp.setInt(1, exp);
+            prepp.setInt(2, exp_n);
+            prepp.setInt(3, cash);
+            prepp.setInt(4, id);
+            prepp.executeUpdate(); 
+            
+            System.out.println("player saving complete");
+            
+            }catch (SQLException ex){
+                System.out.println("player saving error");
+                ex.printStackTrace();
+            }
+        }
+        
+        @Override
+        public void insertData(int ID){
+            super.insertData(ID);          
+            
+            try{
+            this.prep = conn.prepareStatement("INSERT INTO Player (Ent_ID, exp, exp_n) VALUES (1, ?, ?)");
+            this.prep.setInt(1, exp);
+            this.prep.setInt(2, exp_n);
+            this.prep.executeUpdate(); 
+            
+            System.out.println("player saving complete");
+            
+            }catch (SQLException ex){
+                System.out.println("enemy making error");
+                ex.printStackTrace();
+            }
+        }        
 }

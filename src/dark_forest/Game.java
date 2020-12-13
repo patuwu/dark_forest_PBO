@@ -1,13 +1,31 @@
 package dark_forest;
+import javax.swing.*;
+import java.util.Random;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+
 
 public class Game extends javax.swing.JFrame {
 
+    private static final int IFW = JComponent.WHEN_IN_FOCUSED_WINDOW;
     public Menu menu = new Menu();
-    public Player player = new Player("test");
+    final Random rnd = new Random();
+    public Mapping mapping;
+    public Player player;
     public Enemy target;
-    
-    public Game() {
+    public Connection conn;
+    public PreparedStatement prep;
+    public CardLayout panelSwitch;
+            
+    public Game(Connection conn) {
+        this.conn = conn;
+        player = new Player(this.conn);
+        target = new Enemy(1, 0, this.conn);
+        mapping = new Mapping(this.conn);
         initComponents();
+        validate();
+        
     }
 
     /**
@@ -19,6 +37,7 @@ public class Game extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        Main_Window = new javax.swing.JPanel();
         Start = new javax.swing.JPanel();
         BPlay = new javax.swing.JButton();
         BLoad = new javax.swing.JButton();
@@ -26,6 +45,13 @@ public class Game extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         Combat = new javax.swing.JPanel();
+        Reward = new javax.swing.JPanel();
+        expbar = new javax.swing.JProgressBar();
+        exp_count = new javax.swing.JLabel();
+        cash_count = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        close_reward = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         Actions = new javax.swing.JPanel();
         Attack_c = new javax.swing.JButton();
@@ -44,17 +70,33 @@ public class Game extends javax.swing.JFrame {
         Ice_S = new javax.swing.JButton();
         Light_S = new javax.swing.JButton();
         Cancel_S = new javax.swing.JButton();
-        jProgressBar1 = new javax.swing.JProgressBar();
+        p_MPBar = new javax.swing.JProgressBar();
+        p_HPBar = new javax.swing.JProgressBar();
         jPanel2 = new javax.swing.JPanel();
+        e_HPBar = new javax.swing.JProgressBar();
+        E_Name = new javax.swing.JLabel();
+        Adventure = new javax.swing.JPanel();
+        Player_post = new player_dot();
+        People = new peoples();
+        Map = new map();
+        Loading = new javax.swing.JPanel();
+        jLabel3 = new javax.swing.JLabel();
+        progress = new javax.swing.JLabel();
+        Dead = new javax.swing.JPanel();
+        jLabel4 = new javax.swing.JLabel();
+        Reset = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Dark");
         setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        setPreferredSize(new java.awt.Dimension(640, 480));
         setResizable(false);
         setSize(new java.awt.Dimension(640, 480));
-        getContentPane().setLayout(null);
 
-        Start.setLayout(null);
+        Main_Window.setOpaque(false);
+        Main_Window.setLayout(new java.awt.CardLayout());
+
+        Start.setPreferredSize(new java.awt.Dimension(640, 480));
+        Start.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         BPlay.setBackground(new java.awt.Color(60, 63, 63));
         BPlay.setForeground(new java.awt.Color(204, 204, 204));
@@ -66,16 +108,19 @@ public class Game extends javax.swing.JFrame {
                 BPlayActionPerformed(evt);
             }
         });
-        Start.add(BPlay);
-        BPlay.setBounds(195, 170, 250, 50);
+        Start.add(BPlay, new org.netbeans.lib.awtextra.AbsoluteConstraints(195, 170, 250, 50));
 
         BLoad.setBackground(new java.awt.Color(60, 63, 63));
         BLoad.setForeground(new java.awt.Color(204, 204, 204));
         BLoad.setText("LOAD");
         BLoad.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         BLoad.setOpaque(false);
-        Start.add(BLoad);
-        BLoad.setBounds(195, 240, 250, 50);
+        BLoad.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                BLoadActionPerformed(evt);
+            }
+        });
+        Start.add(BLoad, new org.netbeans.lib.awtextra.AbsoluteConstraints(195, 240, 250, 50));
 
         BExit.setBackground(new java.awt.Color(60, 63, 63));
         BExit.setForeground(new java.awt.Color(204, 204, 204));
@@ -87,32 +132,70 @@ public class Game extends javax.swing.JFrame {
                 BExitMouseClicked(evt);
             }
         });
-        Start.add(BExit);
-        BExit.setBounds(195, 310, 250, 50);
+        Start.add(BExit, new org.netbeans.lib.awtextra.AbsoluteConstraints(195, 310, 250, 50));
 
         jLabel1.setFont(new java.awt.Font("Panton Black Caps", 0, 48)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(255, 255, 255));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("DARK FOREST");
-        Start.add(jLabel1);
-        jLabel1.setBounds(145, 67, 360, 59);
+        Start.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(145, 67, 360, -1));
 
         jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/dark_forest/RI.jpg"))); // NOI18N
         jLabel2.setText("jLabel2");
-        Start.add(jLabel2);
-        jLabel2.setBounds(0, 0, 640, 480);
+        Start.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 640, 480));
 
-        getContentPane().add(Start);
-        Start.setBounds(0, 0, 640, 480);
+        Main_Window.add(Start, "panelS");
 
-        Combat.setLayout(null);
-        Combat.setVisible(true);
+        Combat.setMinimumSize(new java.awt.Dimension(640, 480));
+        Combat.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        Reward.setVisible(false);
+        Reward.setBackground(new java.awt.Color(0, 51, 153));
+        Reward.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Reward.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        expbar.setBackground(new java.awt.Color(51, 51, 51));
+        expbar.setForeground(new java.awt.Color(0, 102, 51));
+        expbar.setValue((player.getEXP()*100/player.getEXP_N()));
+        Reward.add(expbar, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 50, 250, 10));
+
+        exp_count.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
+        exp_count.setForeground(new java.awt.Color(255, 255, 255));
+        exp_count.setText(player.getEXP() + " / " + player.getEXP_N());
+        Reward.add(exp_count, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 60, 250, 20));
+
+        cash_count.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        cash_count.setForeground(new java.awt.Color(255, 255, 255));
+        cash_count.setText("0");
+        Reward.add(cash_count, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 90, 250, 30));
+
+        jLabel7.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jLabel7.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel7.setText("EXP");
+        Reward.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 50, 40, 30));
+
+        jLabel8.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jLabel8.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel8.setText("GOLD");
+        Reward.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 90, 40, 30));
+
+        close_reward.setText("OK");
+        close_reward.setOpaque(false);
+        close_reward.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                close_rewardActionPerformed(evt);
+            }
+        });
+        Reward.add(close_reward, new org.netbeans.lib.awtextra.AbsoluteConstraints(155, 150, -1, -1));
+
+        Combat.add(Reward, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 140, 360, 190));
 
         jPanel1.setBackground(new java.awt.Color(0, 51, 153));
         jPanel1.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         jPanel1.setLayout(null);
 
         Actions.setOpaque(false);
+        Actions.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         Attack_c.setText("Attack");
         Attack_c.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -122,6 +205,7 @@ public class Game extends javax.swing.JFrame {
                 Attack_cActionPerformed(evt);
             }
         });
+        Actions.add(Attack_c, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 11, 90, 42));
 
         Spell_c.setText("Spell");
         Spell_c.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -131,64 +215,40 @@ public class Game extends javax.swing.JFrame {
                 Spell_cActionPerformed(evt);
             }
         });
+        Actions.add(Spell_c, new org.netbeans.lib.awtextra.AbsoluteConstraints(118, 11, 90, 42));
 
         Defend.setText("Defend");
         Defend.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         Defend.setOpaque(false);
+        Defend.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                DefendActionPerformed(evt);
+            }
+        });
+        Actions.add(Defend, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 71, 90, 42));
 
         Heal.setText("Heal");
         Heal.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         Heal.setOpaque(false);
+        Heal.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                HealActionPerformed(evt);
+            }
+        });
+        Actions.add(Heal, new org.netbeans.lib.awtextra.AbsoluteConstraints(118, 71, 90, 42));
 
         Check.setText("Check");
         Check.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         Check.setOpaque(false);
+        Actions.add(Check, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 131, 90, 42));
 
         Esc.setText("Escape !");
         Esc.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         Esc.setOpaque(false);
-
-        javax.swing.GroupLayout ActionsLayout = new javax.swing.GroupLayout(Actions);
-        Actions.setLayout(ActionsLayout);
-        ActionsLayout.setHorizontalGroup(
-            ActionsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 226, Short.MAX_VALUE)
-            .addGroup(ActionsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(ActionsLayout.createSequentialGroup()
-                    .addContainerGap()
-                    .addGroup(ActionsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(Attack_c, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(Defend, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(Check, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGap(18, 18, 18)
-                    .addGroup(ActionsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(Spell_c, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(Heal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(Esc, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addContainerGap(22, Short.MAX_VALUE)))
-        );
-        ActionsLayout.setVerticalGroup(
-            ActionsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 174, Short.MAX_VALUE)
-            .addGroup(ActionsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(ActionsLayout.createSequentialGroup()
-                    .addContainerGap()
-                    .addGroup(ActionsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(Attack_c, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(Spell_c, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGap(18, 18, 18)
-                    .addGroup(ActionsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(Defend, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(Heal, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGap(18, 18, 18)
-                    .addGroup(ActionsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(Check, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(Esc, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-        );
+        Actions.add(Esc, new org.netbeans.lib.awtextra.AbsoluteConstraints(118, 131, 90, 42));
 
         jPanel1.add(Actions);
-        Actions.setBounds(9, 3, 226, 174);
+        Actions.setBounds(9, 3, 208, 174);
 
         Attack.setOpaque(false);
         Attack.setVisible(false);
@@ -196,14 +256,29 @@ public class Game extends javax.swing.JFrame {
         Normal_A.setText("Normal Attack");
         Normal_A.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         Normal_A.setOpaque(false);
+        Normal_A.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                Normal_AActionPerformed(evt);
+            }
+        });
 
         Swift_A.setText("Swift Strike");
         Swift_A.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         Swift_A.setOpaque(false);
+        Swift_A.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                Swift_AActionPerformed(evt);
+            }
+        });
 
         Heavy_A.setText("Heavy Strike");
         Heavy_A.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         Heavy_A.setOpaque(false);
+        Heavy_A.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                Heavy_AActionPerformed(evt);
+            }
+        });
 
         Cancel_A.setText("Cancel");
         Cancel_A.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -246,7 +321,7 @@ public class Game extends javax.swing.JFrame {
         );
 
         jPanel1.add(Attack);
-        Attack.setBounds(9, 3, 226, 174);
+        Attack.setBounds(9, 3, 230, 174);
 
         Spell.setOpaque(false);
         Spell.setVisible(false);
@@ -254,14 +329,29 @@ public class Game extends javax.swing.JFrame {
         Fire_S.setText("Fire Blast [50]");
         Fire_S.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         Fire_S.setOpaque(false);
+        Fire_S.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                Fire_SActionPerformed(evt);
+            }
+        });
 
         Ice_S.setText("Ice Spear [30]");
         Ice_S.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         Ice_S.setOpaque(false);
+        Ice_S.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                Ice_SActionPerformed(evt);
+            }
+        });
 
         Light_S.setText("<html>\n]Lightning Bolt </br>\n[80]\n</html>");
         Light_S.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         Light_S.setOpaque(false);
+        Light_S.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                Light_SActionPerformed(evt);
+            }
+        });
 
         Cancel_S.setText("Cancel");
         Cancel_S.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -304,24 +394,159 @@ public class Game extends javax.swing.JFrame {
         );
 
         jPanel1.add(Spell);
-        Spell.setBounds(9, 3, 226, 174);
+        Spell.setBounds(9, 3, 230, 174);
 
-        jProgressBar1.setBackground(new java.awt.Color(51, 51, 51));
-        jProgressBar1.setForeground(new java.awt.Color(0, 102, 51));
-        jProgressBar1.setValue((player.getHP()*100/player.getmax_HP()));
-        jPanel1.add(jProgressBar1);
-        jProgressBar1.setBounds(240, 20, 310, 12);
+        p_MPBar.setBackground(new java.awt.Color(51, 51, 51));
+        p_MPBar.setForeground(new java.awt.Color(0, 204, 204));
+        p_MPBar.setValue((player.getMP()*100/player.getmax_MP()));
+        jPanel1.add(p_MPBar);
+        p_MPBar.setBounds(240, 50, 190, 10);
 
-        Combat.add(jPanel1);
-        jPanel1.setBounds(0, 290, 640, 190);
+        p_HPBar.setBackground(new java.awt.Color(51, 51, 51));
+        p_HPBar.setForeground(new java.awt.Color(0, 102, 51));
+        p_HPBar.setValue((player.getHP()*100/player.getmax_HP()));
+        jPanel1.add(p_HPBar);
+        p_HPBar.setBounds(240, 20, 310, 14);
+
+        Combat.add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 290, 640, 190));
 
         jPanel2.setBackground(new java.awt.Color(0, 51, 153));
         jPanel2.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        Combat.add(jPanel2);
-        jPanel2.setBounds(0, 0, 640, 50);
+        Combat.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 640, 50));
 
-        getContentPane().add(Combat);
-        Combat.setBounds(0, 0, 640, 480);
+        e_HPBar.setBackground(new java.awt.Color(51, 51, 51));
+        e_HPBar.setForeground(new java.awt.Color(0, 102, 51));
+        e_HPBar.setValue((target.getHP()*100/target.getmax_HP()));
+        Combat.add(e_HPBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 60, 130, 10));
+
+        E_Name.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        E_Name.setText(target.getName());
+        Combat.add(E_Name, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 70, 130, -1));
+
+        Main_Window.add(Combat, "panelC");
+
+        Adventure.setMinimumSize(new java.awt.Dimension(640, 480));
+        Adventure.setPreferredSize(new java.awt.Dimension(640, 480));
+        Adventure.getInputMap(IFW).put(KeyStroke.getKeyStroke("UP"), "go up");
+        Adventure.getInputMap(IFW).put(KeyStroke.getKeyStroke("DOWN"), "go down");
+        Adventure.getInputMap(IFW).put(KeyStroke.getKeyStroke("LEFT"), "go left");
+        Adventure.getInputMap(IFW).put(KeyStroke.getKeyStroke("RIGHT"), "go right");
+
+        Adventure.getActionMap().put("go up", new traverse(0,-8,1));
+        Adventure.getActionMap().put("go down", new traverse(0,8,2));
+        Adventure.getActionMap().put("go left", new traverse(-1,0,3));
+        Adventure.getActionMap().put("go right", new traverse(1,0,4));
+        Adventure.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        Player_post.setOpaque(false);
+
+        javax.swing.GroupLayout Player_postLayout = new javax.swing.GroupLayout(Player_post);
+        Player_post.setLayout(Player_postLayout);
+        Player_postLayout.setHorizontalGroup(
+            Player_postLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 640, Short.MAX_VALUE)
+        );
+        Player_postLayout.setVerticalGroup(
+            Player_postLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 400, Short.MAX_VALUE)
+        );
+
+        Adventure.add(Player_post, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 20, -1, -1));
+
+        People.setOpaque(false);
+
+        javax.swing.GroupLayout PeopleLayout = new javax.swing.GroupLayout(People);
+        People.setLayout(PeopleLayout);
+        PeopleLayout.setHorizontalGroup(
+            PeopleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 640, Short.MAX_VALUE)
+        );
+        PeopleLayout.setVerticalGroup(
+            PeopleLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 400, Short.MAX_VALUE)
+        );
+
+        Adventure.add(People, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 20, -1, -1));
+
+        Map.setBackground(new java.awt.Color(51, 255, 51));
+
+        javax.swing.GroupLayout MapLayout = new javax.swing.GroupLayout(Map);
+        Map.setLayout(MapLayout);
+        MapLayout.setHorizontalGroup(
+            MapLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 640, Short.MAX_VALUE)
+        );
+        MapLayout.setVerticalGroup(
+            MapLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 400, Short.MAX_VALUE)
+        );
+
+        Adventure.add(Map, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 20, -1, -1));
+
+        Main_Window.add(Adventure, "panelA");
+
+        Loading.setMinimumSize(new java.awt.Dimension(640, 480));
+        Loading.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jLabel3.setFont(new java.awt.Font("Tw Cen MT", 1, 24)); // NOI18N
+        jLabel3.setText("LOADING");
+        Loading.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 226, -1, -1));
+
+        progress.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        progress.setText("jLabel5");
+        Loading.add(progress, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 260, 240, -1));
+
+        Main_Window.add(Loading, "panelL");
+
+        jLabel4.setFont(new java.awt.Font("Tw Cen MT", 1, 36)); // NOI18N
+        jLabel4.setText("GAME OVER");
+
+        Reset.setText("jButton1");
+        Reset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ResetActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout DeadLayout = new javax.swing.GroupLayout(Dead);
+        Dead.setLayout(DeadLayout);
+        DeadLayout.setHorizontalGroup(
+            DeadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(DeadLayout.createSequentialGroup()
+                .addGap(221, 221, 221)
+                .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(402, 402, 402))
+            .addGroup(DeadLayout.createSequentialGroup()
+                .addGap(242, 242, 242)
+                .addComponent(Reset, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        DeadLayout.setVerticalGroup(
+            DeadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(DeadLayout.createSequentialGroup()
+                .addGap(82, 82, 82)
+                .addComponent(jLabel4)
+                .addGap(207, 207, 207)
+                .addComponent(Reset, javax.swing.GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE)
+                .addGap(118, 118, 118))
+        );
+
+        Main_Window.add(Dead, "panelD");
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(Main_Window, javax.swing.GroupLayout.PREFERRED_SIZE, 640, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(Main_Window, javax.swing.GroupLayout.PREFERRED_SIZE, 480, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
 
         setSize(new java.awt.Dimension(656, 518));
         setLocationRelativeTo(null);
@@ -331,19 +556,167 @@ public class Game extends javax.swing.JFrame {
        this.dispose();
     }//GEN-LAST:event_BExitMouseClicked
 
-    private void BPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BPlayActionPerformed
-       Combat.setVisible(true);
-       target = new Enemy(player.getLvl());
-       Start.setVisible(false);
+    private class map extends JPanel{
+        int i, j, room;
+        
+        @Override
+        public void paintComponent(Graphics g){
+            super.paintComponent(g);
+            room = player.getRoom();
+            mapping.updateGrid(room);
+            try{
+                
+            prep = conn.prepareStatement("SELECT * FROM Grid");
+            ResultSet stat = prep.executeQuery();
+            
+            while(stat.next()){
+            if(stat.getBoolean("is_Passable") == false){
+                g.setColor(Color.RED);
+            }
+            else{
+                g.setColor(Color.GREEN);
+            }
+            
+            i = 0;
+            j = stat.getInt("grid") - (i*8);
+            
+            while(j >= 8){
+                i++;
+                j = stat.getInt("grid") - (i*8);
+            }
+
+            g.fillRect(1+80*j, 50*i, 78, 48);}
+            
+            }catch (SQLException ex)
+                    {System.out.println("error");}
+        }
+    }
+    
+    private class peoples extends JPanel{
+        int i, j, room;
+                
+        @Override
+        public void paintComponent(Graphics g){
+            super.paintComponent(g);
+            room = player.getRoom();
+            try{
+            PreparedStatement prepcheck = conn.prepareStatement("SELECT * FROM Entity WHERE room = (?) AND Ent_ID > 1");
+            prepcheck.setInt(1, room);
+            ResultSet check = prepcheck.executeQuery();
+            
+            while(check.next()){           
+            g.setColor(Color.RED);
+
+            i = 0;
+            j = check.getInt("grid") - (i*8);
+            
+            while(j >= 8){
+                i++;
+                j = check.getInt("grid") - (i*8);
+            }
+                
+            g.fillOval(20+80*j, 5+50*i, 40, 40);
+            }
+                        
+            }catch (SQLException ex)
+            {System.out.println("error");}         
+        repaint();
+        }
+    }
+    
+    private class player_dot extends JPanel{
+        int i, j, room;
+                
+        @Override
+        public void paintComponent(Graphics g){
+            super.paintComponent(g);
+            room = player.getRoom();
+            g.setColor(Color.BLACK);
+            i = 0;
+            j = player.getGrid() - (i*8);
+            
+            while(j >= 8){
+                i++;
+                j = player.getGrid() - (i*8);
+            }
+                
+            g.fillOval(20+80*j, 5+50*i, 40, 40);                                
+        repaint();
+        }
+    }
+    
+    private void resetRun(){
+        try{
+            Statement stm = conn.createStatement();
+            
+            stm.executeUpdate("DELETE FROM Rooms");
+            stm.executeUpdate("DELETE FROM Grid");
+            stm.executeUpdate("DELETE FROM Entity");
+            stm.executeUpdate("DELETE FROM Player");
+            stm.executeUpdate("DELETE FROM Enemy");       
+        } catch (SQLException ex)
+            {
+                System.out.println("delete error");
+                ex.printStackTrace();
+            }
+    }
        
+    private void checkChange(){
+        p_HPBar.setValue((player.getHP()*100/player.getmax_HP()));
+        p_MPBar.setValue((player.getMP()*100/player.getmax_MP()));
+        e_HPBar.setValue((target.getHP()*100/target.getmax_HP()));
+        
        if(player.getHP()*100/player.getmax_HP() > 75)
-        {jProgressBar1.setForeground(new java.awt.Color(51, 153, 0));}
+        {p_HPBar.setForeground(new java.awt.Color(51, 153, 0));}
        else if(player.getHP()*100/player.getmax_HP() > 35)
-        {jProgressBar1.setForeground(new java.awt.Color(204, 204, 0));}
+        {p_HPBar.setForeground(new java.awt.Color(204, 204, 0));}
        else
-        {jProgressBar1.setForeground(new java.awt.Color(153, 0, 0));}
+        {p_HPBar.setForeground(new java.awt.Color(153, 0, 0));}
+       
+       if(target.getHP()*100/target.getmax_HP() > 75)
+        {e_HPBar.setForeground(new java.awt.Color(51, 153, 0));}
+       else if(target.getHP()*100/target.getmax_HP() > 35)
+        {e_HPBar.setForeground(new java.awt.Color(204, 204, 0));}
+       else
+        {e_HPBar.setForeground(new java.awt.Color(153, 0, 0));}
+       
+        System.out.println(target.getHP());
+    }
+    
+    private void BPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BPlayActionPerformed
+       new loadNew().execute();
+       switchPanel("panelL");
     }//GEN-LAST:event_BPlayActionPerformed
 
+    class loadNew extends SwingWorker<Integer, Integer>{
+        @Override
+        protected Integer doInBackground() throws Exception
+        {   
+            progress.setText("Reseting Timeline");
+            resetRun();
+            System.out.println("reset complete");
+            progress.setText("Awaking the Player");
+            player = new Player(1, 1, conn);
+            progress.setText("Terrorizing the Forest");
+            for(int i = 2; i <= 3; i++){
+            target = new Enemy(player.getLvl(), i, conn);}
+            System.out.println("entity making complete");
+            progress.setText("Rebuilding the Forest");
+            mapping = new Mapping(conn);
+            mapping.GenerateRoom();
+            System.out.println("mapping complete");
+            return 1;
+        }
+        
+        @Override
+        protected void done(){
+           try {
+               switchPanel("panelA");
+           } catch (Exception ignore) {
+           } 
+        }    
+    }
+    
     private void Attack_cActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Attack_cActionPerformed
         Attack.setVisible(true);
         Actions.setVisible(false);
@@ -364,8 +737,283 @@ public class Game extends javax.swing.JFrame {
         Actions.setVisible(true);
     }//GEN-LAST:event_Cancel_SActionPerformed
 
+    private void Normal_AActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Normal_AActionPerformed
+        menu.attack(player, target, 1, conn);
+        menu.attack(target, player, target.RollAttack(), conn);
+        player.restoreMP();
+        target.restoreMP();
+        this.checkChange();
+        Attack.setVisible(false);
+        Actions.setVisible(true);
+    }//GEN-LAST:event_Normal_AActionPerformed
+
+    private void Swift_AActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Swift_AActionPerformed
+        menu.attack(player, target, 3, conn);
+        menu.attack(target, player, target.RollAttack(), conn);
+        player.restoreMP();
+        this.checkChange();
+        Attack.setVisible(false);
+        Actions.setVisible(true);
+    }//GEN-LAST:event_Swift_AActionPerformed
+
+    private void Heavy_AActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Heavy_AActionPerformed
+        menu.attack(player, target, 2, conn);
+        menu.attack(target, player, target.RollAttack(), conn);
+        player.restoreMP();
+        target.restoreMP();
+        this.checkChange();
+        Spell.setVisible(false);
+        Actions.setVisible(true);
+    }//GEN-LAST:event_Heavy_AActionPerformed
+
+    private void Fire_SActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Fire_SActionPerformed
+        menu.attack(player, target, 9, conn);
+        menu.attack(target, player, target.RollAttack(), conn);
+        player.restoreMP();
+        this.checkChange();
+        Spell.setVisible(false);
+        Actions.setVisible(true);
+    }//GEN-LAST:event_Fire_SActionPerformed
+
+    private void Ice_SActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Ice_SActionPerformed
+        menu.attack(player, target, 10, conn);
+        menu.attack(target, player, target.RollAttack(), conn);
+        player.restoreMP();
+        target.restoreMP();
+        this.checkChange();
+        Spell.setVisible(false);
+        Actions.setVisible(true);
+    }//GEN-LAST:event_Ice_SActionPerformed
+
+    private void Light_SActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Light_SActionPerformed
+        menu.attack(player, target, 11, conn);
+        menu.attack(target, player, target.RollAttack(), conn);
+        player.restoreMP();
+        target.restoreMP();
+        this.checkChange();
+        Spell.setVisible(false);
+        Actions.setVisible(true);
+    }//GEN-LAST:event_Light_SActionPerformed
+
+    private void BLoadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BLoadActionPerformed
+       switchPanel("panelA");         
+    }//GEN-LAST:event_BLoadActionPerformed
+
+    private void ResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ResetActionPerformed
+       switchPanel("panelS");
+    }//GEN-LAST:event_ResetActionPerformed
+
+    private void close_rewardActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_close_rewardActionPerformed
+        switchPanel("panelA");
+        new auto_save().execute();
+        Reward.setVisible(false);
+    }//GEN-LAST:event_close_rewardActionPerformed
+
+    private class auto_save extends SwingWorker<Void,Void>{
+        @Override
+        protected Void doInBackground() throws Exception {
+            player.updateData();
+            return null;
+        }
+    }
+    
+    private void DefendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DefendActionPerformed
+        player.setStr(player.getStr()+100);
+        player.setInt(player.getInte()+100);
+        menu.attack(target, player, target.RollAttack(), conn);
+        player.restoreMP();
+        target.restoreMP();
+        this.checkChange();
+        player.setStr(player.getStr()-100);
+        player.setInt(player.getInte()-100);       
+    }//GEN-LAST:event_DefendActionPerformed
+
+    private void HealActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_HealActionPerformed
+        menu.attack(player, target, 17, conn);
+        menu.attack(target, player, target.RollAttack(), conn);
+        player.restoreMP();
+        target.restoreMP();
+        this.checkChange();
+    }//GEN-LAST:event_HealActionPerformed
+
+    public void switchPanel(String panel){
+        panelSwitch = (CardLayout)Main_Window.getLayout();
+        panelSwitch.show(Main_Window, panel);     
+        System.out.println("changed to " + panel);
+    }
+    
+    public class traverse extends AbstractAction{
+        int move_hz;
+        int move_vr;
+        int direction;
+        int target_id;
+        ResultSet position;
+        PreparedStatement prepAct;
+        
+        public traverse(int move_hz,int move_vr,int direction){
+        this.direction = direction;
+        this.move_hz = move_hz;
+        this.move_vr = move_vr;
+        
+        }
+        
+        @Override
+        public void actionPerformed(ActionEvent e) {
+        try{
+        System.out.println("movement direction - " + direction);
+        int grid = player.getGrid();  
+        
+        PreparedStatement prepCheck = conn.prepareStatement("SELECT * FROM Entity WHERE grid = (?)");
+        prepCheck.setInt(1, grid+(move_hz+move_vr));
+        ResultSet target_check = prepCheck.executeQuery();
+        
+        
+        
+        if(target_check.next() == true){
+                if(target_check.getInt("Ent_ID") != 1){
+                target_id = target_check.getInt("Ent_ID");                                
+                target = new Enemy(target_id, conn);
+                E_Name.setText(target.getName());
+                System.out.println("checked"); 
+                checkChange();
+                switchPanel("panelC");
+                new combat_start().execute();
+            }
+        }                
+        
+        
+        
+//        switch(direction){
+//                case 1 :
+//                    if(grid >= 2 && grid <= 5){
+//                        prepCheck = conn.prepareStatement("SELECT up_Room FROM Rooms WHERE room_ID = (?)");
+//                        prepCheck.setInt(1, player.getRoom());
+//                        ResultSet next = prepCheck.executeQuery();
+//                        player.setRoom(next.getInt("up_Room"));
+//                        move_hz = 56;
+//                        move_vr = 0;
+//                    }
+//                    break;
+//                case 2 :
+//                    if(grid >= 58 && grid <= 61){
+//                        prepCheck = conn.prepareStatement("SELECT down_Room FROM Rooms WHERE room_ID = (?)");
+//                        prepCheck.setInt(1, player.getRoom());
+//                        ResultSet next = prepCheck.executeQuery();
+//                        player.setRoom(next.getInt("down_Room"));
+//                        move_hz = -56;
+//                        move_vr = 0;
+//                    }
+//                    break;
+//                case 3 :
+//                    if(grid == 16 || grid == 24 || grid == 32 || grid == 40){
+//                        prepCheck = conn.prepareStatement("SELECT left_Room FROM Rooms WHERE room_ID = (?)");
+//                        prepCheck.setInt(1, player.getRoom());
+//                        ResultSet next = prepCheck.executeQuery();
+//                        player.setRoom(next.getInt("left_Room"));
+//                        move_hz = 0;
+//                        move_vr = 7;
+//                    }
+//                    break;
+//                case 4 :
+//                    if(grid == 23 || grid == 31 || grid == 39 || grid == 43){
+//                        prepCheck = conn.prepareStatement("SELECT right_Room FROM Rooms WHERE room_ID = (?)");
+//                        prepCheck.setInt(1, player.getRoom());
+//                        ResultSet next = prepCheck.executeQuery();
+//                        player.setRoom(next.getInt("right_Room"));
+//                        move_hz = 0;
+//                        move_vr = -7;
+//                    }
+//                    break;
+//            }
+        move(grid, move_hz, move_vr);
+        Player_post.repaint();
+        
+        System.out.println("movement end");
+        }catch(SQLException ex){
+            System.out.println("movement error");
+            ex.printStackTrace();
+        }
+        }
+        
+    }
+    
+    private void move(int grid, int move_hz, int move_vr){       
+        try{        
+        prep = conn.prepareStatement("SELECT * FROM Grid WHERE grid = (?)");
+        prep.setInt(1, grid+(move_hz+move_vr));
+        ResultSet next = prep.executeQuery();
+                            
+        if(next.getBoolean("is_Passable") == true){                                   
+            player.setGrid(grid+(move_hz+move_vr));
+        }
+        }catch(SQLException ex){
+            System.out.println("movement failed");
+        }
+    }
+       
+    private class combat_start extends SwingWorker<Integer,Integer>{
+        @Override
+        protected Integer doInBackground() throws Exception {
+            
+        int cond = 0;
+            
+        while(target.getHP() > 0 && player.getHP() > 0){
+         
+        }
+
+        if(target.getHP() <= 0){
+            cond = 1;
+        }
+        else if (player.getHP() <= 0){
+            cond = 2;
+        }
+          
+        
+        return cond;
+        }
+        
+        @Override
+        protected void done(){
+            try {
+                System.out.println(get());
+                if(get() == 1){
+                    try{
+                    PreparedStatement Deletion = conn.prepareStatement("DELETE FROM Entity WHERE Ent_ID = (?)");
+                    Deletion.setInt(1, target.getID());
+                    Deletion.executeUpdate();
+                    }catch(SQLException ex){
+                        ex.printStackTrace();
+                    }                                        
+                    
+                    int calcR = target.GiveReward();
+                    int rngR = rnd.nextInt(10);
+                    
+                    player.addEXP(calcR);
+                    player.addCash(calcR+(50*rngR));
+                    rewardList(calcR+(50*rngR));
+                    People.repaint();                   
+                    System.out.println("combat finished");
+                }
+                
+                else if(get() == 2){
+                    switchPanel("panelD");
+                }
+                 
+            } catch (Exception ignore) {
+            } 
+        }
+    }
+    
+    private void rewardList(int cash){
+        expbar.setValue((player.getEXP()*100/player.getEXP_N()));
+        exp_count.setText(player.getEXP() + " / " + player.getEXP_N());
+        cash_count.setText(Integer.toString(cash));
+        Reward.setVisible(true);
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel Actions;
+    private javax.swing.JPanel Adventure;
     private javax.swing.JPanel Attack;
     private javax.swing.JButton Attack_c;
     private javax.swing.JButton BExit;
@@ -375,22 +1023,42 @@ public class Game extends javax.swing.JFrame {
     private javax.swing.JButton Cancel_S;
     private javax.swing.JButton Check;
     private javax.swing.JPanel Combat;
+    private javax.swing.JPanel Dead;
     private javax.swing.JButton Defend;
+    private javax.swing.JLabel E_Name;
     private javax.swing.JButton Esc;
     private javax.swing.JButton Fire_S;
     private javax.swing.JButton Heal;
     private javax.swing.JButton Heavy_A;
     private javax.swing.JButton Ice_S;
     private javax.swing.JButton Light_S;
+    private javax.swing.JPanel Loading;
+    private javax.swing.JPanel Main_Window;
+    private javax.swing.JPanel Map;
     private javax.swing.JButton Normal_A;
+    private javax.swing.JPanel People;
+    private javax.swing.JPanel Player_post;
+    private javax.swing.JButton Reset;
+    private javax.swing.JPanel Reward;
     private javax.swing.JPanel Spell;
     private javax.swing.JButton Spell_c;
     private javax.swing.JPanel Start;
     private javax.swing.JButton Swift_A;
+    private javax.swing.JLabel cash_count;
+    private javax.swing.JButton close_reward;
+    private javax.swing.JProgressBar e_HPBar;
+    private javax.swing.JLabel exp_count;
+    private javax.swing.JProgressBar expbar;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JProgressBar jProgressBar1;
+    private javax.swing.JProgressBar p_HPBar;
+    private javax.swing.JProgressBar p_MPBar;
+    private javax.swing.JLabel progress;
     // End of variables declaration//GEN-END:variables
 }

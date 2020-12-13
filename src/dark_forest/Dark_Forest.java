@@ -1,13 +1,29 @@
 package dark_forest;
-
+import java.sql.*;
 public class Dark_Forest {
 
     public static void main(String[] args) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
+        try {
+	Connection conn = DriverManager.getConnection("jdbc:sqlite:./src/save/database.db");
+
+    	if (conn != null) {
+            System.out.println("Connected to database.db");
+        }
+
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            @Override
             public void run() {
-                new Game().setVisible(true);
+                new Game(conn).setVisible(true);
+                System.out.println("hell");
             }
         });
+
+	} catch (SQLException e) {
+    	System.out.println("An error occurred. Maybe user/password is invalid");
+   		e.printStackTrace();
+	}
+        
+
     }
     
 }
