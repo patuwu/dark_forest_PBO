@@ -32,6 +32,7 @@ public class Enemy extends Entity{
             intel = intel + (lvl);
             agi = agi + (lvl);
             hp = max_hp = str*100;
+            max_mp = mp = intel*20;
 
             switch(trait){
                 case 0 : break;

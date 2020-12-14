@@ -1,5 +1,7 @@
 package dark_forest;
 import java.sql.*;
+import java.net.URISyntaxException;
+
 public class Dark_Forest {
 
     public static void main(String[] args) {
@@ -19,7 +21,7 @@ public class Dark_Forest {
         });
 
 	} catch (SQLException e) {
-    	System.out.println("An error occurred. Maybe user/password is invalid");
+    	System.out.println("An error occurred");
    		e.printStackTrace();
 	}
         

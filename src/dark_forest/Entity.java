@@ -12,7 +12,7 @@ public abstract class Entity {
         name = "0_null";
         lvl = 1;
         str = intel = agi = 5;
-        hp = max_hp = str*100;
+        hp = max_hp = str*100;   
         max_mp = mp = intel*20;
         id = ID;
     }

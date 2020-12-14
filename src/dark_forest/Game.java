@@ -1,17 +1,26 @@
 package dark_forest;
 import javax.swing.*;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
 import java.awt.event.*;
 import java.sql.*;
-import java.util.Arrays;
+import java.io.IOException;
+
 
 
 public class Game extends javax.swing.JFrame {
 
     private static final int IFW = JComponent.WHEN_IN_FOCUSED_WINDOW;
+    public Timer refreshPlayer;
+    public int playerGridCheck;
+    public ActionListener refPlay;
+    public BufferedImage model, enemy_models, combat_bg, map_bg, tree, start_button, combat_button;
+    public ImageIcon background;
     public Menu menu = new Menu();
     final Random rnd = new Random();
     public Mapping mapping;
@@ -21,16 +30,50 @@ public class Game extends javax.swing.JFrame {
     public PreparedStatement prep;
     public CardLayout panelSwitch;
             
-    public Game(Connection conn) {
+    public Game(Connection conn){
         this.conn = conn;
-        player = new Player(this.conn);
+        player = new Player(1, 0, this.conn);
         target = new Enemy(1, 0, this.conn);
         mapping = new Mapping(this.conn);
-        initComponents();
-        validate();
+        background = new ImageIcon(new ImageIcon(getClass().getResource("/sprites/background_menu.png")).getImage());
         
+        try{
+        model = (ImageIO.read(this.getClass().getResource("/sprites/player.png")));
+        tree = (ImageIO.read(this.getClass().getResource("/sprites/tree.png")));
+        combat_bg = (ImageIO.read(this.getClass().getResource("/sprites/battle_ground.png")));
+        map_bg = (ImageIO.read(this.getClass().getResource("/sprites/map_ground.png")));
+        enemy_models = (ImageIO.read(this.getClass().getResource("/sprites/enemy.png")));
+        start_button = (ImageIO.read(this.getClass().getResource("/sprites/button_menu.png")));
+        combat_button = (ImageIO.read(this.getClass().getResource("/sprites/button_combat.png")));
+        
+        
+        }catch (IOException ex) {
+            ex.printStackTrace();
+            
+            
+        }
+        
+        initComponents();     
+        
+        refreshPlayer = new Timer(30, new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(playerGridCheck != player.getGrid()){
+                    Player_loc.repaint();
+                    Player_loc.paintComponents(Player_loc.getGraphics());
+                    playerGridCheck = player.getGrid();
+                    System.out.println("player moved");
+                }
+            }
+            
+        });
+        refreshPlayer.start();
+        
+        validate();
     }
 
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -48,12 +91,11 @@ public class Game extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         Combat = new javax.swing.JPanel();
+        e_HPBar = new javax.swing.JProgressBar();
         Reward = new javax.swing.JPanel();
         expbar = new javax.swing.JProgressBar();
         exp_count = new javax.swing.JLabel();
-        cash_count = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
         close_reward = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         Actions = new javax.swing.JPanel();
@@ -61,7 +103,6 @@ public class Game extends javax.swing.JFrame {
         Spell_c = new javax.swing.JButton();
         Defend = new javax.swing.JButton();
         Heal = new javax.swing.JButton();
-        Check = new javax.swing.JButton();
         Esc = new javax.swing.JButton();
         Attack = new javax.swing.JPanel();
         Normal_A = new javax.swing.JButton();
@@ -76,10 +117,12 @@ public class Game extends javax.swing.JFrame {
         p_MPBar = new javax.swing.JProgressBar();
         p_HPBar = new javax.swing.JProgressBar();
         jPanel2 = new javax.swing.JPanel();
-        e_HPBar = new javax.swing.JProgressBar();
+        Combat_screen = new combat_scr();
         E_Name = new javax.swing.JLabel();
         Adventure = new javax.swing.JPanel();
-        Player_dot = new player_dot();
+        jPanel3 = new javax.swing.JPanel();
+        jPanel4 = new javax.swing.JPanel();
+        Player_loc = new player_dot();
         People = new peoples();
         Map = new map();
         Loading = new javax.swing.JPanel();
@@ -103,9 +146,12 @@ public class Game extends javax.swing.JFrame {
 
         BPlay.setBackground(new java.awt.Color(60, 63, 63));
         BPlay.setForeground(new java.awt.Color(204, 204, 204));
-        BPlay.setText("PLAY");
-        BPlay.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        BPlay.setAlignmentY(0.0F);
+        BPlay.setBorder(null);
+        BPlay.setBorderPainted(false);
+        BPlay.setContentAreaFilled(false);
         BPlay.setOpaque(false);
+        BPlay.setIcon(new ImageIcon(start_button.getSubimage(500, 0, 250, 50)));
         BPlay.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 BPlayActionPerformed(evt);
@@ -115,9 +161,13 @@ public class Game extends javax.swing.JFrame {
 
         BLoad.setBackground(new java.awt.Color(60, 63, 63));
         BLoad.setForeground(new java.awt.Color(204, 204, 204));
-        BLoad.setText("LOAD");
-        BLoad.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        BLoad.setAlignmentY(0.0F);
+        BLoad.setBorder(null);
+        BLoad.setBorderPainted(false);
+        BLoad.setContentAreaFilled(false);
+        BLoad.setIconTextGap(0);
         BLoad.setOpaque(false);
+        BLoad.setIcon(new ImageIcon(start_button.getSubimage(250, 0, 250, 50)));
         BLoad.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 BLoadActionPerformed(evt);
@@ -127,9 +177,15 @@ public class Game extends javax.swing.JFrame {
 
         BExit.setBackground(new java.awt.Color(60, 63, 63));
         BExit.setForeground(new java.awt.Color(204, 204, 204));
-        BExit.setText("EXIT");
-        BExit.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        BExit.setBorder(null);
+        BExit.setBorderPainted(false);
+        BExit.setContentAreaFilled(false);
+        BExit.setIconTextGap(0);
+        BExit.setMaximumSize(new java.awt.Dimension(250, 50));
+        BExit.setMinimumSize(new java.awt.Dimension(250, 50));
         BExit.setOpaque(false);
+        BExit.setPreferredSize(new java.awt.Dimension(250, 50));
+        BExit.setIcon(new ImageIcon(start_button.getSubimage(0, 0, 250, 50)));
         BExit.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 BExitMouseClicked(evt);
@@ -140,11 +196,11 @@ public class Game extends javax.swing.JFrame {
         jLabel1.setFont(new java.awt.Font("Panton Black Caps", 0, 48)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(255, 255, 255));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("DARK FOREST");
-        Start.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(145, 67, 360, -1));
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/sprites/title.png"))); // NOI18N
+        Start.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(145, 67, 360, 70));
 
-        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/dark_forest/RI.jpg"))); // NOI18N
-        jLabel2.setText("jLabel2");
+        jLabel2.setIcon(background);
+        jLabel2.setIconTextGap(0);
         Start.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 640, 480));
 
         Main_Window.add(Start, "panelS");
@@ -152,36 +208,32 @@ public class Game extends javax.swing.JFrame {
         Combat.setMinimumSize(new java.awt.Dimension(640, 480));
         Combat.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        e_HPBar.setBackground(new java.awt.Color(0, 0, 0));
+        e_HPBar.setForeground(new java.awt.Color(255, 255, 255));
+        e_HPBar.setValue((target.getHP()*100/target.getmax_HP()));
+        Combat.add(e_HPBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 60, 130, 10));
+
         Reward.setVisible(false);
-        Reward.setBackground(new java.awt.Color(0, 51, 153));
-        Reward.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Reward.setBackground(new java.awt.Color(0, 0, 0));
+        Reward.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 255, 255), 5));
         Reward.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        expbar.setBackground(new java.awt.Color(51, 51, 51));
-        expbar.setForeground(new java.awt.Color(0, 102, 51));
+        expbar.setBackground(new java.awt.Color(0, 0, 0));
+        expbar.setForeground(new java.awt.Color(255, 255, 255));
         expbar.setValue((player.getEXP()*100/player.getEXP_N()));
-        Reward.add(expbar, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 50, 250, 10));
+        Reward.add(expbar, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 80, 260, 10));
 
-        exp_count.setFont(new java.awt.Font("Tahoma", 1, 10)); // NOI18N
+        exp_count.setFont(new java.awt.Font("Courier New", 1, 10)); // NOI18N
         exp_count.setForeground(new java.awt.Color(255, 255, 255));
         exp_count.setText(player.getEXP() + " / " + player.getEXP_N());
-        Reward.add(exp_count, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 60, 250, 20));
+        Reward.add(exp_count, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 90, 260, 20));
 
-        cash_count.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        cash_count.setForeground(new java.awt.Color(255, 255, 255));
-        cash_count.setText("0");
-        Reward.add(cash_count, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 90, 250, 30));
-
-        jLabel7.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jLabel7.setFont(new java.awt.Font("Courier New", 1, 18)); // NOI18N
         jLabel7.setForeground(new java.awt.Color(255, 255, 255));
         jLabel7.setText("EXP");
-        Reward.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 50, 40, 30));
+        Reward.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 80, 40, 30));
 
-        jLabel8.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jLabel8.setForeground(new java.awt.Color(255, 255, 255));
-        jLabel8.setText("GOLD");
-        Reward.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 90, 40, 30));
-
+        close_reward.setBackground(new java.awt.Color(0, 0, 0));
         close_reward.setText("OK");
         close_reward.setOpaque(false);
         close_reward.addActionListener(new java.awt.event.ActionListener() {
@@ -189,20 +241,24 @@ public class Game extends javax.swing.JFrame {
                 close_rewardActionPerformed(evt);
             }
         });
-        Reward.add(close_reward, new org.netbeans.lib.awtextra.AbsoluteConstraints(155, 150, -1, -1));
+        Reward.add(close_reward, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 140, -1, -1));
 
         Combat.add(Reward, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 140, 360, 190));
 
-        jPanel1.setBackground(new java.awt.Color(0, 51, 153));
-        jPanel1.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        jPanel1.setLayout(null);
+        jPanel1.setBackground(new java.awt.Color(0, 0, 0));
+        jPanel1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 2, true));
+        jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        Actions.setOpaque(false);
+        Actions.setBackground(new java.awt.Color(0, 0, 0));
+        Actions.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 2, true));
         Actions.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        Attack_c.setText("Attack");
-        Attack_c.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        Attack_c.setOpaque(false);
+        Attack_c.setBackground(new java.awt.Color(0, 0, 0));
+        Attack_c.setIcon(new ImageIcon(combat_button.getSubimage(0, 0, 90, 42)));
+        Attack_c.setBorder(null);
+        Attack_c.setBorderPainted(false);
+        Attack_c.setContentAreaFilled(false);
+        Attack_c.setIconTextGap(0);
         Attack_c.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 Attack_cActionPerformed(evt);
@@ -210,8 +266,12 @@ public class Game extends javax.swing.JFrame {
         });
         Actions.add(Attack_c, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 11, 90, 42));
 
-        Spell_c.setText("Spell");
-        Spell_c.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Spell_c.setIcon(new ImageIcon(combat_button.getSubimage(90, 0, 90, 42)));
+        Spell_c.setBorder(null);
+        Spell_c.setBorderPainted(false);
+        Spell_c.setContentAreaFilled(false);
+        Spell_c.setFocusable(false);
+        Spell_c.setIconTextGap(0);
         Spell_c.setOpaque(false);
         Spell_c.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -220,8 +280,11 @@ public class Game extends javax.swing.JFrame {
         });
         Actions.add(Spell_c, new org.netbeans.lib.awtextra.AbsoluteConstraints(118, 11, 90, 42));
 
-        Defend.setText("Defend");
-        Defend.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Defend.setIcon(new ImageIcon(combat_button.getSubimage(180, 0, 90, 42)));
+        Defend.setBorder(null);
+        Defend.setBorderPainted(false);
+        Defend.setContentAreaFilled(false);
+        Defend.setIconTextGap(0);
         Defend.setOpaque(false);
         Defend.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -230,8 +293,11 @@ public class Game extends javax.swing.JFrame {
         });
         Actions.add(Defend, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 71, 90, 42));
 
-        Heal.setText("Heal");
-        Heal.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Heal.setIcon(new ImageIcon(combat_button.getSubimage(0, 42, 90, 42)));
+        Heal.setBorder(null);
+        Heal.setBorderPainted(false);
+        Heal.setContentAreaFilled(false);
+        Heal.setIconTextGap(0);
         Heal.setOpaque(false);
         Heal.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -240,191 +306,162 @@ public class Game extends javax.swing.JFrame {
         });
         Actions.add(Heal, new org.netbeans.lib.awtextra.AbsoluteConstraints(118, 71, 90, 42));
 
-        Check.setText("Check");
-        Check.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        Check.setOpaque(false);
-        Actions.add(Check, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 131, 90, 42));
-
-        Esc.setText("Escape !");
-        Esc.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Esc.setIcon(new ImageIcon(combat_button.getSubimage(90, 42, 90, 42)));
+        Esc.setToolTipText("");
+        Esc.setBorder(null);
+        Esc.setBorderPainted(false);
+        Esc.setContentAreaFilled(false);
+        Esc.setIconTextGap(0);
         Esc.setOpaque(false);
-        Actions.add(Esc, new org.netbeans.lib.awtextra.AbsoluteConstraints(118, 131, 90, 42));
+        Actions.add(Esc, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 130, 90, 42));
 
-        jPanel1.add(Actions);
-        Actions.setBounds(9, 3, 208, 174);
+        jPanel1.add(Actions, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 230, 190));
 
-        Attack.setOpaque(false);
+        Attack.setBackground(new java.awt.Color(0, 0, 0));
+        Attack.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 2, true));
         Attack.setVisible(false);
+        Attack.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        Normal_A.setText("Normal Attack");
-        Normal_A.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Normal_A.setBorder(null);
+        Normal_A.setBorderPainted(false);
+        Normal_A.setContentAreaFilled(false);
+        Normal_A.setIconTextGap(0);
         Normal_A.setOpaque(false);
+        Normal_A.setIcon(new ImageIcon(combat_button.getSubimage(0, 84, 90, 42)));
         Normal_A.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 Normal_AActionPerformed(evt);
             }
         });
+        Attack.add(Normal_A, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 11, 90, 42));
 
-        Swift_A.setText("Swift Strike");
         Swift_A.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Swift_A.setBorderPainted(false);
+        Swift_A.setContentAreaFilled(false);
+        Swift_A.setIconTextGap(0);
         Swift_A.setOpaque(false);
+        Swift_A.setIcon(new ImageIcon(combat_button.getSubimage(90, 84, 90, 42)));
         Swift_A.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 Swift_AActionPerformed(evt);
             }
         });
+        Attack.add(Swift_A, new org.netbeans.lib.awtextra.AbsoluteConstraints(118, 11, 90, 42));
 
-        Heavy_A.setText("Heavy Strike");
         Heavy_A.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Heavy_A.setBorderPainted(false);
+        Heavy_A.setContentAreaFilled(false);
+        Heavy_A.setIconTextGap(0);
         Heavy_A.setOpaque(false);
+        Heavy_A.setIcon(new ImageIcon(combat_button.getSubimage(180, 84, 90, 42)));
         Heavy_A.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 Heavy_AActionPerformed(evt);
             }
         });
+        Attack.add(Heavy_A, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 71, 90, 42));
 
-        Cancel_A.setText("Cancel");
         Cancel_A.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Cancel_A.setBorderPainted(false);
+        Cancel_A.setContentAreaFilled(false);
+        Cancel_A.setIconTextGap(0);
         Cancel_A.setOpaque(false);
+        Cancel_A.setIcon(new ImageIcon(combat_button.getSubimage(180, 42, 90, 42)));
         Cancel_A.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 Cancel_AActionPerformed(evt);
             }
         });
+        Attack.add(Cancel_A, new org.netbeans.lib.awtextra.AbsoluteConstraints(118, 71, 90, 42));
 
-        javax.swing.GroupLayout AttackLayout = new javax.swing.GroupLayout(Attack);
-        Attack.setLayout(AttackLayout);
-        AttackLayout.setHorizontalGroup(
-            AttackLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(AttackLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(AttackLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(AttackLayout.createSequentialGroup()
-                        .addComponent(Normal_A, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(Swift_A, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(AttackLayout.createSequentialGroup()
-                        .addComponent(Heavy_A, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(Cancel_A, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(22, Short.MAX_VALUE))
-        );
-        AttackLayout.setVerticalGroup(
-            AttackLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(AttackLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(AttackLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(Normal_A, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(Swift_A, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(AttackLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(Heavy_A, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(Cancel_A, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(66, Short.MAX_VALUE))
-        );
+        jPanel1.add(Attack, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 230, 190));
 
-        jPanel1.add(Attack);
-        Attack.setBounds(9, 3, 230, 174);
-
-        Spell.setOpaque(false);
+        Spell.setBackground(new java.awt.Color(0, 0, 0));
+        Spell.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 2, true));
         Spell.setVisible(false);
+        Spell.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        Fire_S.setText("Fire Blast [50]");
         Fire_S.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Fire_S.setBorderPainted(false);
+        Fire_S.setContentAreaFilled(false);
+        Fire_S.setIconTextGap(0);
         Fire_S.setOpaque(false);
+        Fire_S.setIcon(new ImageIcon(combat_button.getSubimage(0, 126, 90, 42)));
         Fire_S.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 Fire_SActionPerformed(evt);
             }
         });
+        Spell.add(Fire_S, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 11, 90, 42));
 
-        Ice_S.setText("Ice Spear [30]");
         Ice_S.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Ice_S.setBorderPainted(false);
+        Ice_S.setContentAreaFilled(false);
+        Ice_S.setIconTextGap(0);
         Ice_S.setOpaque(false);
+        Ice_S.setIcon(new ImageIcon(combat_button.getSubimage(90, 126, 90, 42)));
         Ice_S.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 Ice_SActionPerformed(evt);
             }
         });
+        Spell.add(Ice_S, new org.netbeans.lib.awtextra.AbsoluteConstraints(118, 11, 90, 42));
 
-        Light_S.setText("<html>\n]Lightning Bolt </br>\n[80]\n</html>");
         Light_S.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Light_S.setBorderPainted(false);
+        Light_S.setContentAreaFilled(false);
+        Light_S.setIconTextGap(0);
         Light_S.setOpaque(false);
+        Light_S.setIcon(new ImageIcon(combat_button.getSubimage(180, 126, 90, 42)));
         Light_S.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 Light_SActionPerformed(evt);
             }
         });
+        Spell.add(Light_S, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 71, 90, 42));
 
-        Cancel_S.setText("Cancel");
         Cancel_S.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Cancel_S.setBorderPainted(false);
+        Cancel_S.setContentAreaFilled(false);
+        Cancel_S.setIconTextGap(0);
         Cancel_S.setOpaque(false);
+        Cancel_S.setIcon(new ImageIcon(combat_button.getSubimage(180, 42, 90, 42)));
         Cancel_S.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 Cancel_SActionPerformed(evt);
             }
         });
+        Spell.add(Cancel_S, new org.netbeans.lib.awtextra.AbsoluteConstraints(118, 71, 90, 42));
 
-        javax.swing.GroupLayout SpellLayout = new javax.swing.GroupLayout(Spell);
-        Spell.setLayout(SpellLayout);
-        SpellLayout.setHorizontalGroup(
-            SpellLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(SpellLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(SpellLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(SpellLayout.createSequentialGroup()
-                        .addComponent(Fire_S, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(Ice_S, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(SpellLayout.createSequentialGroup()
-                        .addComponent(Light_S, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(Cancel_S, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(22, Short.MAX_VALUE))
-        );
-        SpellLayout.setVerticalGroup(
-            SpellLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(SpellLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(SpellLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(Fire_S, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(Ice_S, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(SpellLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(Cancel_S, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(Light_S, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(66, Short.MAX_VALUE))
-        );
+        jPanel1.add(Spell, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 230, 190));
 
-        jPanel1.add(Spell);
-        Spell.setBounds(9, 3, 230, 174);
-
-        p_MPBar.setBackground(new java.awt.Color(51, 51, 51));
+        p_MPBar.setBackground(new java.awt.Color(0, 0, 0));
         p_MPBar.setForeground(new java.awt.Color(0, 204, 204));
         p_MPBar.setValue((player.getMP()*100/player.getmax_MP()));
-        jPanel1.add(p_MPBar);
-        p_MPBar.setBounds(240, 50, 190, 10);
+        jPanel1.add(p_MPBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 50, 190, 10));
 
-        p_HPBar.setBackground(new java.awt.Color(51, 51, 51));
+        p_HPBar.setBackground(new java.awt.Color(0, 0, 0));
         p_HPBar.setForeground(new java.awt.Color(0, 102, 51));
         p_HPBar.setValue((player.getHP()*100/player.getmax_HP()));
-        jPanel1.add(p_HPBar);
-        p_HPBar.setBounds(240, 20, 310, 14);
+        jPanel1.add(p_HPBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 20, 310, -1));
 
         Combat.add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 290, 640, 190));
 
-        jPanel2.setBackground(new java.awt.Color(0, 51, 153));
-        jPanel2.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        jPanel2.setBackground(new java.awt.Color(0, 0, 0));
+        jPanel2.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 2, true));
         Combat.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 640, 50));
 
-        e_HPBar.setBackground(new java.awt.Color(51, 51, 51));
-        e_HPBar.setForeground(new java.awt.Color(0, 102, 51));
-        e_HPBar.setValue((target.getHP()*100/target.getmax_HP()));
-        Combat.add(e_HPBar, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 60, 130, 10));
+        Combat_screen.setOpaque(false);
+        Combat_screen.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        E_Name.setBackground(new java.awt.Color(255, 255, 255));
+        E_Name.setFont(new java.awt.Font("Tw Cen MT Condensed", 1, 12)); // NOI18N
         E_Name.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        E_Name.setText(target.info());
-        Combat.add(E_Name, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 70, 130, -1));
+        E_Name.setText(target.getName());
+        E_Name.setOpaque(true);
+        Combat_screen.add(E_Name, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 20, 170, -1));
+
+        Combat.add(Combat_screen, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 50, 640, 240));
 
         Main_Window.add(Combat, "panelC");
 
@@ -441,20 +478,52 @@ public class Game extends javax.swing.JFrame {
         Adventure.getActionMap().put("go right", new traverse(1,4));
         Adventure.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        Player_dot.setOpaque(false);
+        jPanel3.setBackground(new java.awt.Color(0, 0, 0));
+        jPanel3.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 2, true));
 
-        javax.swing.GroupLayout Player_dotLayout = new javax.swing.GroupLayout(Player_dot);
-        Player_dot.setLayout(Player_dotLayout);
-        Player_dotLayout.setHorizontalGroup(
-            Player_dotLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 636, Short.MAX_VALUE)
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 76, Short.MAX_VALUE)
+        );
+
+        Adventure.add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 410, 640, 80));
+
+        jPanel4.setBackground(new java.awt.Color(0, 0, 0));
+        jPanel4.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 2, true));
+
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 636, Short.MAX_VALUE)
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 36, Short.MAX_VALUE)
+        );
+
+        Adventure.add(jPanel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, -10, 640, 40));
+
+        Player_loc.setOpaque(false);
+
+        javax.swing.GroupLayout Player_locLayout = new javax.swing.GroupLayout(Player_loc);
+        Player_loc.setLayout(Player_locLayout);
+        Player_locLayout.setHorizontalGroup(
+            Player_locLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 640, Short.MAX_VALUE)
         );
-        Player_dotLayout.setVerticalGroup(
-            Player_dotLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        Player_locLayout.setVerticalGroup(
+            Player_locLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 400, Short.MAX_VALUE)
         );
 
-        Adventure.add(Player_dot, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 20, -1, -1));
+        Adventure.add(Player_loc, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 20, -1, -1));
 
         People.setOpaque(false);
 
@@ -471,7 +540,7 @@ public class Game extends javax.swing.JFrame {
 
         Adventure.add(People, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 20, -1, -1));
 
-        Map.setBackground(new java.awt.Color(51, 255, 51));
+        Map.setBackground(new java.awt.Color(0, 0, 0));
 
         javax.swing.GroupLayout MapLayout = new javax.swing.GroupLayout(Map);
         Map.setLayout(MapLayout);
@@ -488,51 +557,46 @@ public class Game extends javax.swing.JFrame {
 
         Main_Window.add(Adventure, "panelA");
 
+        Loading.setBackground(new java.awt.Color(0, 0, 0));
         Loading.setMinimumSize(new java.awt.Dimension(640, 480));
+        Loading.setPreferredSize(new java.awt.Dimension(640, 480));
         Loading.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel3.setFont(new java.awt.Font("Tw Cen MT", 1, 24)); // NOI18N
+        jLabel3.setForeground(new java.awt.Color(255, 255, 255));
         jLabel3.setText("LOADING");
         Loading.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 226, -1, -1));
 
+        progress.setFont(new java.awt.Font("Courier New", 0, 11)); // NOI18N
+        progress.setForeground(new java.awt.Color(255, 255, 255));
         progress.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        progress.setText("jLabel5");
+        progress.setText(" ");
         Loading.add(progress, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 260, 240, -1));
 
         Main_Window.add(Loading, "panelL");
 
-        jLabel4.setFont(new java.awt.Font("Tw Cen MT", 1, 36)); // NOI18N
-        jLabel4.setText("GAME OVER");
+        Dead.setBackground(new java.awt.Color(0, 0, 0));
+        Dead.setMinimumSize(new java.awt.Dimension(640, 480));
+        Dead.setPreferredSize(new java.awt.Dimension(640, 480));
+        Dead.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        Reset.setText("jButton1");
+        jLabel4.setFont(new java.awt.Font("Tw Cen MT", 1, 36)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel4.setText("GAME OVER");
+        Dead.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(221, 82, -1, -1));
+
+        Reset.setBackground(new java.awt.Color(0, 0, 0));
+        Reset.setFont(new java.awt.Font("Tw Cen MT", 1, 12)); // NOI18N
+        Reset.setForeground(new java.awt.Color(255, 255, 255));
+        Reset.setText("RESET");
+        Reset.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 255), 3, true));
+        Reset.setContentAreaFilled(false);
         Reset.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 ResetActionPerformed(evt);
             }
         });
-
-        javax.swing.GroupLayout DeadLayout = new javax.swing.GroupLayout(Dead);
-        Dead.setLayout(DeadLayout);
-        DeadLayout.setHorizontalGroup(
-            DeadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(DeadLayout.createSequentialGroup()
-                .addGap(221, 221, 221)
-                .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(402, 402, 402))
-            .addGroup(DeadLayout.createSequentialGroup()
-                .addGap(242, 242, 242)
-                .addComponent(Reset, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        DeadLayout.setVerticalGroup(
-            DeadLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(DeadLayout.createSequentialGroup()
-                .addGap(82, 82, 82)
-                .addComponent(jLabel4)
-                .addGap(207, 207, 207)
-                .addComponent(Reset, javax.swing.GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE)
-                .addGap(118, 118, 118))
-        );
+        Dead.add(Reset, new org.netbeans.lib.awtextra.AbsoluteConstraints(242, 329, 154, 33));
 
         Main_Window.add(Dead, "panelD");
 
@@ -556,7 +620,7 @@ public class Game extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void BExitMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_BExitMouseClicked
-       this.dispose();
+        this.dispose();
     }//GEN-LAST:event_BExitMouseClicked
 
     private class map extends JPanel{
@@ -565,39 +629,34 @@ public class Game extends javax.swing.JFrame {
         @Override
         public void paintComponent(Graphics g){
             super.paintComponent(g);
+            g.drawImage(map_bg, 0, 0, this);
             room = player.getRoom();
             mapping.updateGrid(room);
             try{
                 
             prep = conn.prepareStatement("SELECT * FROM Grid");
-            ResultSet stat = prep.executeQuery();
+            ResultSet stat = prep.executeQuery();            
             
-            while(stat.next()){
-            if(stat.getBoolean("is_Passable") == false){
-                g.setColor(Color.RED);
-            }
-            else{
-                g.setColor(Color.GREEN);
-            }
-            
+            while(stat.next()){      
             i = 0;
             j = stat.getInt("grid") - (i*8);
             
             while(j >= 8){
                 i++;
-                j = stat.getInt("grid") - (i*8);
-            }
-
-            g.fillRect(1+80*j, 50*i, 78, 48);}
+                j = stat.getInt("grid") - (i*8); }
+                
+            if(stat.getBoolean("is_Passable") == false){
+            g.drawImage(tree, 80*j, (50*i)-35, this);
+            }          
             
-            }catch (SQLException ex)
+            }}catch (SQLException ex)
                     {System.out.println("error");}
             
         }
     }
     
     private class peoples extends JPanel{
-        int i, j, room;
+        int i, j, room, enemyID;
                 
         @Override
         public void paintComponent(Graphics g){
@@ -605,10 +664,14 @@ public class Game extends javax.swing.JFrame {
             room = player.getRoom();
             try{
             PreparedStatement prepcheck = conn.prepareStatement("SELECT * FROM Entity WHERE room = (?) AND Ent_ID != 1");
+            PreparedStatement prepenemy = conn.prepareStatement("SELECT En_type FROM Enemy WHERE Ent_ID = (?)");
             prepcheck.setInt(1, room);
             ResultSet check = prepcheck.executeQuery();
             
+            
             while(check.next()){  
+            prepenemy.setInt(1, check.getInt("Ent_ID"));
+            enemyID = prepenemy.executeQuery().getInt("En_type");
             g.setColor(Color.RED);
 
             i = 0;
@@ -617,11 +680,15 @@ public class Game extends javax.swing.JFrame {
             while(j >= 8){
                 i++;
                 j = check.getInt("grid") - (i*8);
+            }                
+            switch(enemyID){
+                case 0 : g.drawImage(enemy_models.getSubimage(0, 0, 40, 40), 20+80*j, 5+50*i, this); break;
+                case 1 : g.drawImage(enemy_models.getSubimage(40, 0, 40, 40), 20+80*j, 5+50*i, this); break;
+                case 2 : g.drawImage(enemy_models.getSubimage(80, 0, 40, 40), 20+80*j, 5+50*i, this); break;
+                case 3 : g.drawImage(enemy_models.getSubimage(0, 40, 40, 40), 20+80*j, 5+50*i, this); break;
+                case 4 : g.drawImage(enemy_models.getSubimage(40, 40, 40, 40), 20+80*j, 5+50*i, this); break;
             }
-                
-            g.fillOval(20+80*j, 5+50*i, 40, 40);
-            }
-
+            }            
             }catch (SQLException ex)
             {System.out.println("error");}   
             
@@ -629,15 +696,11 @@ public class Game extends javax.swing.JFrame {
     }
     
     private class player_dot extends JPanel{
-        int i, j, room;
+        int i, j;
                 
         @Override
         public void paintComponent(Graphics g){
-            super.paintComponent(g);
-            room = player.getRoom();
-                         
-            g.setColor(Color.BLACK);
-
+            super.paintComponent(g);        
             i = 0;
             j = player.getGrid() - (i*8);
             
@@ -645,12 +708,28 @@ public class Game extends javax.swing.JFrame {
                 i++;
                 j = player.getGrid() - (i*8);
             }
-                
-            g.fillOval(20+80*j, 5+50*i, 40, 40);
-
+                         
+            g.drawImage(model.getSubimage(0, 0, 40, 40), 20+80*j, 5+50*i, this);
         }
     }
     
+    public class combat_scr extends JPanel{
+                
+        @Override
+        public void paintComponent(Graphics g){
+            super.paintComponent(g);        
+            g.drawImage(combat_bg, 0, 0, this);                                     
+            g.drawImage(model.getSubimage(0, 0, 40, 40).getScaledInstance(150, 150, Image.SCALE_FAST), 60, 60, this);
+            switch(target.getEType()){
+                case 0 : g.drawImage(enemy_models.getSubimage(0, 0, 40, 40).getScaledInstance(150, 150, Image.SCALE_FAST), 470, 60, this); break;
+                case 1 : g.drawImage(enemy_models.getSubimage(40, 0, 40, 40).getScaledInstance(150, 150, Image.SCALE_FAST), 470, 60, this); break;
+                case 2 : g.drawImage(enemy_models.getSubimage(80, 0, 40, 40).getScaledInstance(150, 150, Image.SCALE_FAST), 470, 60, this); break;
+                case 3 : g.drawImage(enemy_models.getSubimage(0, 40, 40, 40).getScaledInstance(150, 150, Image.SCALE_FAST), 470, 60, this); break;
+                case 4 : g.drawImage(enemy_models.getSubimage(40, 40, 40, 40).getScaledInstance(150, 150, Image.SCALE_FAST), 470, 60, this); break;
+            }
+        }
+    }
+        
     private void resetRun(){
         try{
             Statement stm = conn.createStatement();
@@ -719,6 +798,7 @@ public class Game extends javax.swing.JFrame {
         @Override
         protected void done(){
            try {
+               BPlay.setIcon(new ImageIcon(start_button.getSubimage(500, 0, 250, 50)));
                switchPanel("panelA");
            } catch (Exception ignore) {
            } 
@@ -804,9 +884,30 @@ public class Game extends javax.swing.JFrame {
     }//GEN-LAST:event_Light_SActionPerformed
 
     private void BLoadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BLoadActionPerformed
-       switchPanel("panelA");         
+        progress.setText("Waking Up");
+        switchPanel("panelL"); 
+        new loadSave().execute();        
     }//GEN-LAST:event_BLoadActionPerformed
 
+    class loadSave extends SwingWorker<Integer, Integer>{
+        @Override
+        protected Integer doInBackground() throws Exception
+        {   
+            player = new Player(conn);
+            for(int i = 0; i < 20; i++){}
+            return 1;
+        }
+        
+        @Override
+        protected void done(){
+           try {
+               BPlay.setIcon(new ImageIcon(start_button.getSubimage(500, 0, 250, 50)));
+               switchPanel("panelA");
+           } catch (Exception ignore) {
+           } 
+        }    
+    }    
+    
     private void ResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ResetActionPerformed
        switchPanel("panelS");
     }//GEN-LAST:event_ResetActionPerformed
@@ -885,6 +986,8 @@ public class Game extends javax.swing.JFrame {
                 if(target_check.getInt("Ent_ID") != 1){
                 target_id = target_check.getInt("Ent_ID");                                
                 target = new Enemy(target_id, conn);
+                Combat_screen.repaint();
+                Combat_screen.paintComponents(Combat_screen.getGraphics());
                 E_Name.setText(target.getName());
                 System.out.println("checked"); 
                 checkChange();
@@ -935,7 +1038,15 @@ public class Game extends javax.swing.JFrame {
     }
     
     private void mover(int grid, int move, int skip){       
-        try{        
+        try{
+        int i = 0;
+        int j = grid - (i*8);
+        
+        while(j >= 8){
+            i++;
+            j = grid - (i*8);
+        }
+            
         PreparedStatement prepMove = conn.prepareStatement("SELECT is_Passable FROM Grid WHERE grid = (?)");
         prepMove.setInt(1, grid+move);
         ResultSet next = prepMove.executeQuery();
@@ -943,7 +1054,6 @@ public class Game extends javax.swing.JFrame {
         if(next.getBoolean("is_Passable") == true || skip == 1){                                   
             player.setGrid(grid+move);
             System.out.println("movement success to " + (move+grid));
-            Player_dot.paintImmediately(0,0, 640, 480);
         }
         }catch(SQLException ex){
             System.out.println("movement failed");
@@ -980,7 +1090,6 @@ public class Game extends javax.swing.JFrame {
                     int rngR = rnd.nextInt(10);
                     
                     player.addEXP(calcR);
-                    player.addCash(calcR+(50*rngR));
                     rewardList(calcR+(50*rngR));
                     try{
                     PreparedStatement Deletion = conn.prepareStatement("DELETE FROM Entity WHERE Ent_ID = (?)");
@@ -1005,9 +1114,9 @@ public class Game extends javax.swing.JFrame {
     private void rewardList(int cash){
         expbar.setValue((player.getEXP()*100/player.getEXP_N()));
         exp_count.setText(player.getEXP() + " / " + player.getEXP_N());
-        cash_count.setText(Integer.toString(cash));
         Reward.setVisible(true);
     }
+    
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel Actions;
@@ -1019,8 +1128,8 @@ public class Game extends javax.swing.JFrame {
     private javax.swing.JButton BPlay;
     private javax.swing.JButton Cancel_A;
     private javax.swing.JButton Cancel_S;
-    private javax.swing.JButton Check;
     private javax.swing.JPanel Combat;
+    private javax.swing.JPanel Combat_screen;
     private javax.swing.JPanel Dead;
     private javax.swing.JButton Defend;
     private javax.swing.JLabel E_Name;
@@ -1035,14 +1144,13 @@ public class Game extends javax.swing.JFrame {
     private javax.swing.JPanel Map;
     private javax.swing.JButton Normal_A;
     private javax.swing.JPanel People;
-    private javax.swing.JPanel Player_dot;
+    private javax.swing.JPanel Player_loc;
     private javax.swing.JButton Reset;
     private javax.swing.JPanel Reward;
     private javax.swing.JPanel Spell;
     private javax.swing.JButton Spell_c;
     private javax.swing.JPanel Start;
     private javax.swing.JButton Swift_A;
-    private javax.swing.JLabel cash_count;
     private javax.swing.JButton close_reward;
     private javax.swing.JProgressBar e_HPBar;
     private javax.swing.JLabel exp_count;
@@ -1052,9 +1160,10 @@ public class Game extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JProgressBar p_HPBar;
     private javax.swing.JProgressBar p_MPBar;
     private javax.swing.JLabel progress;

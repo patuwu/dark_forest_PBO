@@ -4,8 +4,7 @@ import java.sql.*;
 
 public class Player extends Entity {
     	final Random rnd = new Random();
-        public int[] inventory = new int[8];
-	private int exp, exp_n, cash;
+	private int exp, exp_n;
         private Connection conn;
         private PreparedStatement prep;
         
@@ -15,11 +14,11 @@ public class Player extends Entity {
             this.conn = conn;
             exp = 0;
             exp_n = 150; 
-            cash = 0;
             room = 1;
             grid = 17;
             
-            this.insertData(ID);
+            if(ID != 0){
+            this.insertData(ID);}
 	}
         
         public Player(Connection conn){
@@ -30,7 +29,6 @@ public class Player extends Entity {
                 
                 exp = retrieve.getInt("exp");
                 exp_n = retrieve.getInt("exp_n");
-                cash = retrieve.getInt("cash");
                 
                 
         }catch(SQLException ex){
@@ -83,21 +81,16 @@ public class Player extends Entity {
 			{addEXP(amount);}
 		}
 	}
-        
-        public void addCash(int amount){
-            cash = cash + amount;
-        }
-        
+
         @Override
         public void updateData(){
             super.updateData();
             
             try{
-            PreparedStatement prepp = conn.prepareStatement("UPDATE Player SET exp = (?), exp_n = (?), cash = (?) WHERE Ent_ID = (?)");
+            PreparedStatement prepp = conn.prepareStatement("UPDATE Player SET exp = (?), exp_n = (?) WHERE Ent_ID = (?)");
             prepp.setInt(1, exp);
             prepp.setInt(2, exp_n);
-            prepp.setInt(3, cash);
-            prepp.setInt(4, id);
+            prepp.setInt(3, id);
             prepp.executeUpdate(); 
             
             System.out.println("player saving complete");
@@ -128,6 +121,6 @@ public class Player extends Entity {
 
         @Override
         public String info(){
-            return (cash + " / " + exp);
+            return (exp + " / " + exp_n);
         }
 }

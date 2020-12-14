@@ -21,58 +21,115 @@ public class Mapping implements Runnable {
     public void run(){
         try{
             
-            ArrayList<Integer> ban = new ArrayList<Integer>();
-            ArrayList<Integer> done = new ArrayList<Integer>();
-            int j;
-            boolean deleted;
-            for(int i = 1; i <= 9; i++){
-                
-                System.out.println(i);
-                PreparedStatement prepC = conn.prepareStatement("SELECT * FROM Rooms WHERE room_ID = (?)");
-                prepC.setInt(1, i);
-                ResultSet check = prepC.executeQuery();
-                
-                j = 1 + rnd.nextInt(8);                
-                if(check.getInt("right_Room") == 0 && ban.contains(j) == false && i != j){
-                    updateLink(i,j,"left_Room" ,"right_Room");
-                    ban.add(j);
-                    j = 1 + rnd.nextInt(8);                        
-                }
-                
-                if(check.getInt("up_Room") == 0 && ban.contains(j) == false && i != j){
-                    updateLink(i,j,"bot_Room" ,"up_Room");
-                    ban.add(j);
-                    j = 1 + rnd.nextInt(8);                                              
-                }
-                
-                if(check.getInt("left_Room") == 0 && ban.contains(j) == false && i != j){
-                    updateLink(i,j,"right_Room" ,"left_Room");
-                    ban.add(j);
-                    j = 1 + rnd.nextInt(8);                       
-                }
-                
-                if(check.getInt("bot_Room") == 0 && ban.contains(j) == false && i != j){
-                    updateLink(i,j,"up_Room" ,"bot_Room");
-                    ban.add(j);
-                    j = 1 + rnd.nextInt(8);
-                }
-                
-                if(i == 9){
-                    if(check.getInt("right_Room") == 0){
-                    updateLink(9,10,"left_Room" ,"right_Room");
+            int[][] mapping =   {
+                                {0,0,0,0,0},
+                                {0,0,0,0,0},
+                                {0,0,0,0,0},
+                                {0,0,0,0,0},                                
+                                {0,0,0,0,0}
+                                };
+            ArrayList<String> ban = new ArrayList<>();
+            int i = 0;
+            int hz = 2;
+            int vr = 2;
+            int dir = rnd.nextInt(3);
+            mapping[hz][vr] = i;
+            i++;
+            
+            while(i <= 9){                    
+                    switch(dir){
+                        case 0 :
+                            if((hz-1) >= 0 && !ban.contains(Arrays.toString(new int[] {hz-1,vr}))){
+                                hz--;
+                            }
+                            else if((vr-1) >= 0 && !ban.contains(Arrays.toString(new int[] {hz,vr-1}))){
+                                vr--;
+                            }
+                            else if((hz+1) <= 4 && !ban.contains(Arrays.toString(new int[] {hz+1,vr}))){
+                                hz++;
+                            }
+                            else if((vr++) <= 4 && !ban.contains(Arrays.toString(new int[] {hz,vr+1}))){
+                                vr++;
+                            }
+                            break;
+                        case 1 :
+                            if((vr-1) >= 0 && !ban.contains(Arrays.toString(new int[] {hz,vr-1}))){
+                                vr--;
+                            }
+                            else if((hz-1) >= 0 && !ban.contains(Arrays.toString(new int[] {hz-1,vr}))){
+                                hz--;
+                            }
+                            else if((hz+1) <= 4 && !ban.contains(Arrays.toString(new int[] {hz+1,vr}))){
+                                hz++;
+                            }
+                            else if((vr+1) <= 4 && !ban.contains(Arrays.toString(new int[] {hz,vr+1}))){
+                                vr++;
+                            }
+                            break;
+                        case 2 :
+                            if((hz+1) <= 4 && !ban.contains(Arrays.toString(new int[] {hz+1,vr}))){
+                                hz++;
+                            }
+                            else if((hz-1) >= 0 && !ban.contains(Arrays.toString(new int[] {hz-1,vr}))){
+                                hz--;
+                            }
+                            else if((vr-1) >= 0 && !ban.contains(Arrays.toString(new int[] {hz,vr-1}))){
+                                vr--;
+                            }
+                            else if((vr++) <= 4 && !ban.contains(Arrays.toString(new int[] {hz,vr +1}))){
+                                vr++;
+                            }
+                            break;
+                        case 3 :
+                            if((vr++) <= 4 && !ban.contains(Arrays.toString(new int[] {hz,vr+1}))){
+                                vr++;
+                            }
+                            else if((hz+1) <= 4 && !ban.contains(Arrays.toString(new int[] {hz+1,vr}))){
+                                hz++;
+                            }
+                            else if((vr-1) >= 0 && !ban.contains(Arrays.toString(new int[] {hz,vr-1}))){
+                                vr--;
+                            }
+                            else if((hz-1) >= 0 && !ban.contains(Arrays.toString(new int[] {hz-1,vr}))){
+                                hz--;
+                            }
+                            break;
                     }
-                    else if(check.getInt("up_Room") == 0){
-                    updateLink(9,10,"bot_Room" ,"up_Room");
+                    dir = rnd.nextInt(3);
+                    if(hz == -1 || hz == 5 | vr == -1 || vr == 5 || ban.contains(Arrays.toString(new int[] {hz,vr}))){
+                        hz = rnd.nextInt(4);
+                        vr = rnd.nextInt(4);
                     }
-                    else if(check.getInt("left_Room") == 0){
-                    updateLink(9,10,"right_Room" ,"left_Room");
-                    }
-                    else if(check.getInt("bot_Room") == 0){
-                    updateLink(9,10,"up_Room" ,"bot_Room");
+                    else{               
+                    mapping[hz][vr] = i;
+                    ban.add(Arrays.toString(new int[] {hz,vr}));
+                    i++;}
+                }
+                System.out.println(Arrays.deepToString(mapping).replace("], ", "]\n"));
+                
+                PreparedStatement prepInsert = conn.prepareStatement("UPDATE Rooms SET left_Room = (?), right_Room = (?), up_Room = (?), bot_Room = (?) WHERE room_ID = (?) ");
+                
+                for(i = 0; i <= 4; i++){
+                    for(int j = 0; j <= 4; j++){
+                        if(mapping[i][j] != 0){
+                            if(j > 0){
+                                prepInsert.setInt(1, mapping[i][j-1]);
+                            }else{prepInsert.setInt(1, 0);}
+                            if(j < 4){
+                                prepInsert.setInt(2, mapping[i][j+1]);
+                            }else{prepInsert.setInt(2, 0);}                            
+                            if(i > 0){
+                                prepInsert.setInt(3, mapping[i-1][j]);
+                            }else{prepInsert.setInt(3, 0);}
+                            if(i < 4){
+                                prepInsert.setInt(4, mapping[i+1][j]);
+                            }else{prepInsert.setInt(4, 0);}
+                            prepInsert.setInt(5, mapping[i][j]);
+                            prepInsert.executeUpdate();
+                        }
                     }
                 }
-                
-            }
+            
         }catch(Exception e){
             System.out.println("thread error");
             e.printStackTrace();
@@ -97,27 +154,11 @@ public class Mapping implements Runnable {
     
     public void GenerateRoom(){
         try{
-            prep = conn.prepareStatement("INSERT INTO Rooms (room_ID, is_BossRoom, is_ShopRoom, is_TreaRoom) VALUES (?, ?, ?, ?)");
+            prep = conn.prepareStatement("INSERT INTO Rooms (room_ID) VALUES (?)");
             
             
             for(int i = 1; i <= 9; i++){
-            prep.setInt(1, i);
-            boss = false;
-            trea = false;
-            shop = false;
-            
-            if(i == 9){
-            boss = true;}
-            
-            else if(i == 5){
-            shop = true;}
-            
-            else if(i == 7){
-            trea = true;}
-            
-            prep.setBoolean(2, boss);
-            prep.setBoolean(3, shop);
-            prep.setBoolean(4, trea);
+            prep.setInt(1, i);                                             
             prep.addBatch();     
             }
             
@@ -233,7 +274,7 @@ public class Mapping implements Runnable {
             
             while(lookResult.next()){
                 int[] gridAllowed = {18,20,21,26,27,28,29,34,35,36,37,42,43,44,45};
-                int[] roomAllowed = {1,2,3,4,6,8};
+                int[] roomAllowed = {1,2,3,4,5,6,7,8};
                 int a = gridAllowed[rnd.nextInt(15)];
                 int b = roomAllowed[rnd.nextInt(6)];
                            
