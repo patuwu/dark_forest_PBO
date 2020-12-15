@@ -151,8 +151,7 @@ public abstract class Entity {
             prep.setInt(11, grid);
             prep.setInt(12, room);
             prep.executeUpdate();
-            
-           System.out.println("entity saving complete");
+           
         }catch(SQLException ex){
             System.out.println("entity insertion failed");
             ex.printStackTrace();
@@ -173,9 +172,7 @@ public abstract class Entity {
             prep.setInt(9, grid);
             prep.setInt(10, room);
             prep.setInt(11, id);
-            prep.executeUpdate(); 
-            
-            System.out.println("entity saving complete");
+            prep.executeUpdate();             
             
             }catch (SQLException ex){
                 System.out.println("entity saving error");

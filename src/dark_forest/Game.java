@@ -62,7 +62,6 @@ public class Game extends javax.swing.JFrame {
                     Player_loc.repaint();
                     Player_loc.paintComponents(Player_loc.getGraphics());
                     playerGridCheck = player.getGrid();
-                    System.out.println("player moved");
                 }
             }
             
@@ -763,9 +762,10 @@ public class Game extends javax.swing.JFrame {
        else if(target.getHP()*100/target.getmax_HP() > 35)
         {e_HPBar.setForeground(new java.awt.Color(204, 204, 0));}
        else
-        {e_HPBar.setForeground(new java.awt.Color(153, 0, 0));}
+        {e_HPBar.setForeground(new java.awt.Color(153, 0, 0));}      
        
-        System.out.println(target.getHP());
+       System.out.println(player.getHP());
+       System.out.println(target.getHP());
     }
     
     private void BPlayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BPlayActionPerformed
@@ -783,7 +783,7 @@ public class Game extends javax.swing.JFrame {
             progress.setText("Awaking the Player");
             player = new Player(1, 1, conn);
             progress.setText("Terrorizing the Forest");
-            for(int i = 2; i <= 3/*(7+rnd.nextInt(3))*/; i++){
+            for(int i = 2; i <= (7+rnd.nextInt(3)); i++){
             target = new Enemy(player.getLvl(), i, conn);}
             System.out.println("entity making complete");
             progress.setText("Rebuilding the Forest");
@@ -1061,22 +1061,23 @@ public class Game extends javax.swing.JFrame {
     }
        
     private class combat_start extends SwingWorker<Integer,Integer>{
+        volatile Boolean fight;
         @Override
         protected Integer doInBackground() throws Exception {
             
         int cond = 0;
+        fight = true;
             
-        while(target.getHP() > 0 && player.getHP() > 0){
-            if(target.getHP() <= 0 || player.getHP() <= 0){break;}
-        }
-
+        while(fight == true){
         if(target.getHP() <= 0){
             cond = 1;
+            fight = false;
         }
         else if (player.getHP() <= 0){
             cond = 2;
+            fight = false;
         }
-          
+        }
         
         return cond;
         }
@@ -1090,7 +1091,7 @@ public class Game extends javax.swing.JFrame {
                     int rngR = rnd.nextInt(10);
                     
                     player.addEXP(calcR);
-                    rewardList(calcR+(50*rngR));
+                    rewardList();
                     try{
                     PreparedStatement Deletion = conn.prepareStatement("DELETE FROM Entity WHERE Ent_ID = (?)");
                     Deletion.setInt(1, target.getID());
@@ -1111,7 +1112,7 @@ public class Game extends javax.swing.JFrame {
         }
     }
     
-    private void rewardList(int cash){
+    private void rewardList(){
         expbar.setValue((player.getEXP()*100/player.getEXP_N()));
         exp_count.setText(player.getEXP() + " / " + player.getEXP_N());
         Reward.setVisible(true);

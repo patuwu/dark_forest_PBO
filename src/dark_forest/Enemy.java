@@ -103,9 +103,7 @@ public class Enemy extends Entity{
             this.prep.setInt(2, en_type);
             this.prep.setInt(3, trait);
             this.prep.setString(4, list);
-            this.prep.executeUpdate();  
-            
-            System.out.println("enemy saving complete");
+            this.prep.executeUpdate();             
             
             }catch (SQLException ex){
                 System.out.println("enemy making error");

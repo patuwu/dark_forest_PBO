@@ -10,8 +10,7 @@ public class Mapping implements Runnable {
     private Connection conn;
     private PreparedStatement prep;
     private long start, end;
-    private int[] inserted;
-    private boolean boss, shop, trea;
+    private int[] inserted;    
     
     public Mapping(Connection conn){
         this.conn = conn;
@@ -36,7 +35,7 @@ public class Mapping implements Runnable {
             mapping[hz][vr] = i;
             i++;
             
-            while(i <= 9){                    
+            while(i <= 10){                    
                     switch(dir){
                         case 0 :
                             if((hz-1) >= 0 && !ban.contains(Arrays.toString(new int[] {hz-1,vr}))){
@@ -135,23 +134,7 @@ public class Mapping implements Runnable {
             e.printStackTrace();
         }
     }
-    
-    private void updateLink(int source, int target, String source_dir, String target_dir){
-        try{
-            PreparedStatement update = conn.prepareStatement("UPDATE Rooms SET "+ target_dir +" = (?) WHERE room_ID = (?)");
-            update.setInt(1, target);
-            update.setInt(2, source);
-            update.executeUpdate();
-            update = conn.prepareStatement("UPDATE Rooms SET "+ source_dir +" = (?) WHERE room_ID = (?)");
-            update.setInt(1, source);
-            update.setInt(2, target);
-            update.executeUpdate();
-            System.out.println("Updated " + target_dir + " - " + source + " connected to " + target);
-        }catch(SQLException ex){
-            ex.printStackTrace();
-        }
-    }
-    
+       
     public void GenerateRoom(){
         try{
             prep = conn.prepareStatement("INSERT INTO Rooms (room_ID) VALUES (?)");
@@ -167,7 +150,7 @@ public class Mapping implements Runnable {
             end = System.currentTimeMillis();
             prep.close();
             
-            System.out.println("total time taken to insert the batch = " + (end - start) + " ms");
+            System.out.println("room insert = " + (end - start) + " ms");
                       
             t = new Thread(this, "map shaping");
             t.start();
@@ -305,7 +288,7 @@ public class Mapping implements Runnable {
             end = System.currentTimeMillis();
             prep2.close();
             
-            System.out.println("total time taken to insert the batch = " + (end - start) + " ms");
+            System.out.println("enemy placing = " + (end - start) + " ms");
             
         }catch (SQLException ex)
         {

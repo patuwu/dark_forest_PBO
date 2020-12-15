@@ -1,6 +1,5 @@
 package dark_forest;
 import java.sql.*;
-import java.net.URISyntaxException;
 
 public class Dark_Forest {
 
@@ -16,7 +15,7 @@ public class Dark_Forest {
             @Override
             public void run() {
                 new Game(conn).setVisible(true);
-                System.out.println("hell");
+                System.out.println("hello");
             }
         });
 

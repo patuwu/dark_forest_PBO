@@ -93,8 +93,6 @@ public class Player extends Entity {
             prepp.setInt(3, id);
             prepp.executeUpdate(); 
             
-            System.out.println("player saving complete");
-            
             }catch (SQLException ex){
                 System.out.println("player saving error");
                 ex.printStackTrace();
@@ -110,8 +108,6 @@ public class Player extends Entity {
             this.prep.setInt(1, exp);
             this.prep.setInt(2, exp_n);
             this.prep.executeUpdate(); 
-            
-            System.out.println("player saving complete");
             
             }catch (SQLException ex){
                 System.out.println("enemy making error");
